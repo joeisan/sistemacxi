@@ -1,6 +1,7 @@
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 import { LayoutDashboard, Users, Package, Settings, Bell, LogOut, ShieldAlert, CreditCard, Calendar, Zap, ChevronRight } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
@@ -18,6 +19,35 @@ export default async function AdminDashboardLayout({
   const tenantData = await getTenantBySubdomain(tenant)
 
   if (!tenantData) return notFound()
+
+  // --- SECURITY GUARD ---
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  
+  // 1. Must be logged in
+  if (authError || !user) {
+    redirect(`/${tenant}`)
+  }
+
+  // 2. Fetch profile to check role and tenant_id
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, tenant_id')
+    .eq('id', user.id)
+    .single()
+
+  // 3. Isolated access: Must be admin of THIS tenant
+  // (Isolated means we check if their tenant_id matches the one they are trying to access)
+  const isAuthorized = !profileError && 
+                       profile?.role === 'admin' && 
+                       profile?.tenant_id === tenantData.id
+
+  if (!isAuthorized) {
+    // If not authorized as admin of this tenant, check if they are Super Admin
+    // (User said "aislado", but usually Super Admins need a way to help. 
+    // However, following "aislado" strictly: only the specific admin enters)
+    redirect(`/${tenant}`)
+  }
 
   const navItems = [
     { href: `/admin`, label: 'Resumen', iconName: 'LayoutDashboard' },
