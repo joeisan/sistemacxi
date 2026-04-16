@@ -15,7 +15,7 @@ export default async function SuperAdminLayout({
   // 1. Check if user is logged in
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    redirect('/')
+    redirect('/login')
   }
 
   // 2. Check if user is super_admin
@@ -26,7 +26,7 @@ export default async function SuperAdminLayout({
     .single()
 
   if (profileError || profile?.role !== 'super_admin') {
-    redirect('/')
+    redirect('/login')
   }
 
   const navItems = [
