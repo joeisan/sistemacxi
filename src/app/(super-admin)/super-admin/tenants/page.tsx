@@ -1,0 +1,128 @@
+import { createAdminClient } from '@/lib/supabase/admin'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Plus, ExternalLink, Edit } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { StatusToggleButton } from '@/components/super-admin/status-toggle-button'
+import { SendAlertButton } from '@/components/super-admin/send-alert-button'
+
+export default async function SuperAdminTenantsPage() {
+  const supabase = createAdminClient()
+
+  const { data: tenants, error } = await supabase
+    .from('tenants')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching tenants:', error)
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight">Empresas (Tenants)</h1>
+          <p className="text-muted-foreground">Administra las instancias de clientes y sus suscripciones.</p>
+        </div>
+        <Link href="/super-admin/setup">
+          <Button className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Empresa
+          </Button>
+        </Link>
+      </div>
+
+      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+        <div className="overflow-x-auto w-full">
+            <Table>
+            <TableHeader>
+                <TableRow className="bg-muted/50">
+                <TableHead className="font-bold whitespace-nowrap">Nombre / Subdominio</TableHead>
+                <TableHead className="font-bold whitespace-nowrap">Plan / Expiración</TableHead>
+                <TableHead className="font-bold whitespace-nowrap">Estado Acceso</TableHead>
+                <TableHead className="font-bold text-right whitespace-nowrap">Acciones</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {tenants && tenants.length > 0 ? (
+                tenants.map((tenant: any) => (
+                    <TableRow key={tenant.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell>
+                        <div className="flex flex-col min-w-[180px]">
+                        <span className="font-semibold text-foreground text-xs">{tenant.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{tenant.subdomain}.localhost</span>
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-col gap-1.5 min-w-[140px]">
+                        <Badge variant="secondary" className="w-fit text-[10px] uppercase font-bold tracking-wider px-2">
+                            {tenant.plan_type || 'Prueba'}
+                        </Badge>
+                        {tenant.plan_expiry_date ? (
+                            <div className="flex flex-col">
+                                <span className={`text-[10px] font-bold flex items-center gap-1 ${
+                                    new Date(tenant.plan_expiry_date) < new Date() ? 'text-destructive' : 'text-muted-foreground'
+                                }`}>
+                                    Exp: {new Date(tenant.plan_expiry_date).toLocaleDateString()}
+                                </span>
+                                {new Date(tenant.plan_expiry_date) < new Date() && (
+                                    <span className="text-[8px] text-destructive uppercase font-black">Expirado</span>
+                                )}
+                            </div>
+                        ) : (
+                            <span className="text-[10px] text-muted-foreground italic">Sin fecha exp.</span>
+                        )}
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <StatusToggleButton 
+                        tenantId={tenant.id} 
+                        initialStatus={tenant.is_active} 
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex justify-end items-center gap-2">
+                        <SendAlertButton tenantId={tenant.id} tenantName={tenant.name} />
+                        
+                        <Link href={`/super-admin/tenants/${tenant.id}`} title="Editar detalles">
+                            <Button variant="outline" size="icon" className="h-8 w-8">
+                            <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                        </Link>
+
+                        <Link 
+                            href={`http://${tenant.subdomain}.localhost:3000`} 
+                            target="_blank"
+                            title="Ir al sitio"
+                        >
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                        </Link>
+                        </div>
+                    </TableCell>
+                    </TableRow>
+                ))
+                ) : (
+                <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground italic text-xs">
+                    No hay empresas registradas.
+                    </TableCell>
+                </TableRow>
+                )}
+            </TableBody>
+            </Table>
+        </div>
+      </div>
+    </div>
+  )
+}
