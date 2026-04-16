@@ -1,6 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building, Users } from 'lucide-react'
+import { redirect } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 export default async function SuperAdminPage() {
   const supabase = createAdminClient()
