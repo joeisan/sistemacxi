@@ -1,13 +1,34 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { LayoutDashboard, Building, Users, LogOut } from 'lucide-react'
 import Link from 'next/link'
 
-export default function SuperAdminLayout({
+export default async function SuperAdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = await createClient()
+  
+  // 1. Check if user is logged in
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    redirect('/')
+  }
+
+  // 2. Check if user is super_admin
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || profile?.role !== 'super_admin') {
+    redirect('/')
+  }
+
   const navItems = [
     { href: '/super-admin', label: 'Resumen', iconName: 'LayoutDashboard' },
     { href: '/super-admin/tenants', label: 'Empresas', iconName: 'Building' },
