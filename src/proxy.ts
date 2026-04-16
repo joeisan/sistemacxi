@@ -15,7 +15,7 @@ export const config = {
   ],
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Create base response and update auth session
   const baseResponse = NextResponse.next({
     request: { headers: request.headers },
@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || ''
 
   // TODO: Add your production domains here
-  const rootDomains = ['localhost:3000', 'sistema-compras-internet.vercel.app']
+  const rootDomains = ['localhost:3000', 'sistemacxi.vercel.app']
   
   let currentHost = hostname
   if (currentHost.includes('localhost')) {
