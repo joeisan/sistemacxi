@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { StatusToggleButton } from '@/components/super-admin/status-toggle-button'
 import { SendAlertButton } from '@/components/super-admin/send-alert-button'
 
+export const dynamic = 'force-dynamic'
+
 export default async function SuperAdminTenantsPage() {
   const supabase = createAdminClient()
 

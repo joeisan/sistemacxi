@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Users, Package, Shield } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function EditTenantPage({
   params,
 }: {
