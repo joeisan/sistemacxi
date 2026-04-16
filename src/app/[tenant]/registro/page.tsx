@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { RegisterForm } from '@/components/tenant/register-form'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TenantRegistroPage({
   params,
 }: {

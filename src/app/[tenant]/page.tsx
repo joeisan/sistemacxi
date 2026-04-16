@@ -2,6 +2,9 @@ import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { LoginForm } from '@/components/tenant/login-form'
+import { notFound } from 'next/navigation'
+
+export const dynamic = 'force-dynamic'
 
 export default async function TenantLoginPage({
   params,
