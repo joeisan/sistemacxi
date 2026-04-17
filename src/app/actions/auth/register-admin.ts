@@ -98,7 +98,7 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
         role: 'admin'
       })
 
-    if (profileError) throw new Error(`Error Perfil: ${profileError.message}`)
+    if (profileError) throw new Error(`Error Perfil: ${profileError?.message || 'Error al guardar perfil'}`)
 
     return { success: true, subdomain: cleanSubdomain }
   } catch (error: any) {
