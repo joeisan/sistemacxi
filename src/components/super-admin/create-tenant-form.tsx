@@ -67,15 +67,21 @@ export function CreateTenantForm() {
         slug,
         subdomain: slug,
       })
+
+      console.log('Resultado:', result)
+
       if (!result.success) {
         toast.error('Error', { description: result.error })
         setIsLoading(false)
         return
       }
       toast.success('Empresa creada exitosamente.')
-      router.push('/super-admin/tenants')
-    } catch (error) {
-      toast.error('Error de Servidor')
+      setTimeout(() => {
+        router.push('/super-admin/tenants')
+      }, 500)
+    } catch (error: any) {
+      console.error('Error en onSubmit:', error)
+      toast.error('Error de Servidor', { description: error.message })
       setIsLoading(false)
     }
   }

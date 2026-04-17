@@ -10,12 +10,12 @@ const addTenantSchema = z.object({
   subdomain: z.string().min(2),
   primaryColor: z.string().startsWith('#').default('#2563eb'),
   secondaryColor: z.string().startsWith('#').default('#f97316'),
-  loginTitle: z.string().optional(),
-  
+  loginTitle: z.string().optional().nullable(),
+
   // Plan Data
   planType: z.enum(['monthly', 'annual']).default('monthly'),
-  planStartDate: z.string().optional(),
-  planExpiryDate: z.string().optional(),
+  planStartDate: z.string().optional().nullable(),
+  planExpiryDate: z.string().optional().nullable(),
 
   // Settings Data
   clientPrefix: z.string().min(2).max(10),
@@ -34,11 +34,18 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
   const supabase = await createClient()
 
   console.log('--- INICIANDO CREACIÓN DE TENANT ---')
-  
+  console.log('Datos recibidos:', data)
+
   const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError || !user) return { success: false, error: 'Sesión expirada.' }
+  console.log('Usuario actual:', user?.id, 'Error auth:', userError)
+
+  if (userError || !user) {
+    console.error('Sesión expirada o usuario no autenticado')
+    return { success: false, error: 'Sesión expirada.' }
+  }
 
   const parsed = addTenantSchema.safeParse(data)
+  console.log('Validación Zod:', parsed.success ? 'OK' : parsed.error.issues)
   if (!parsed.success) return { success: false, error: 'Datos inválidos.' }
 
   const {
