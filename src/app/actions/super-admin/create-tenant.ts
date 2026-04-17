@@ -57,15 +57,17 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
   const { data: tenantData, error: tenantError } = await adminClient
     .from('tenants')
     .insert({
-      name, 
-      slug: slug || subdomain.toLowerCase(), 
+      name,
+      slug: slug || subdomain.toLowerCase(),
       subdomain: subdomain.toLowerCase(),
       primary_color: primaryColor,
       secondary_color: secondaryColor,
       login_title: loginTitle || `Bienvenido a ${name}`,
       plan_type: planType,
       plan_start_date: planStartDate || new Date().toISOString(),
-      plan_expiry_date: planExpiryDate || null
+      plan_expiry_date: planExpiryDate || null,
+      is_trial: false,
+      is_active: true
     })
     .select('id')
     .single()
