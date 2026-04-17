@@ -22,7 +22,7 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
 
   const parsed = registerAdminSchema.safeParse(data)
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0].message }
+    return { success: false, error: parsed.error.issues[0].message }
   }
 
   const { businessName, subdomain, email, password } = parsed.data
