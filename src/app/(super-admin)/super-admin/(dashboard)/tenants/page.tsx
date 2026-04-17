@@ -67,6 +67,7 @@ export default async function SuperAdminTenantsPage() {
                               <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">SOLICITUD UPGRADE</Badge>
                             )}
                           </div>
+                          <span className="text-[10px] text-primary font-medium">{tenant.trial_contact_email || 'Sin correo registrado'}</span>
                           <span className="text-[10px] text-muted-foreground font-mono">{tenant.subdomain}.sistemacxi.vercel.app</span>
                         </div>
                     </TableCell>
