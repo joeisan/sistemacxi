@@ -85,7 +85,7 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
       }
     })
 
-    if (authError || !authData.user) throw new Error(`Error Auth: ${authError.message}`)
+    if (authError || !authData.user) throw new Error(`Error Auth: ${authError?.message || 'Usuario no creado'}`)
 
     // 5. Crear Perfil
     const { error: profileError } = await adminClient
