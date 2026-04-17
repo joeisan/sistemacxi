@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
       const parsedRoot = root.replace(/:\d+$/, '')
       if (currentHost.endsWith(`.${parsedRoot}`)) {
          isSubdomain = true;
-         subdomain = currentHost.replace(`.${parsedRoot}`, '');
+         subdomain = currentHost.replace(`.${parsedRoot}`, '').toLowerCase();
          break;
       }
   }
