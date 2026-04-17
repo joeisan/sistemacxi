@@ -36,7 +36,7 @@ export default async function SuperAdminTenantsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Empresas (Tenants)</h1>
           <p className="text-muted-foreground">Administra las instancias de clientes y sus suscripciones.</p>
         </div>
-        <Link href="/super-admin/setup">
+        <Link href="/super-admin/tenants/nuevo">
           <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Nueva Empresa
