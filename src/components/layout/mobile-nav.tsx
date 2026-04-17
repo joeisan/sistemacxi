@@ -67,11 +67,11 @@ export function MobileNav({ title, items, footerItems, logo, extraContent }: Mob
   return (
     <div className="flex items-center gap-4 md:hidden w-full h-14 border-b bg-background px-4 shrink-0">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
+        <SheetTrigger render={
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
           </Button>
-        </SheetTrigger>
+        } />
         <SheetContent side="left" className="w-72 p-0 flex flex-col">
           <SheetHeader className="p-6 border-b text-left">
             <SheetTitle className="flex items-center gap-2">
