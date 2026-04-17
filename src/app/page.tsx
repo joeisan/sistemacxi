@@ -33,8 +33,8 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link href="#contact">
-               <Button size="sm">Solicitar Demo</Button>
+            <Link href="/register">
+               <Button size="sm">Comenzar Prueba Gratis</Button>
             </Link>
           </div>
         </div>
@@ -63,13 +63,17 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="rounded-full px-8 h-12 text-base font-bold shadow-lg shadow-primary/20">
-                Lanza tu Plataforma
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base font-bold bg-background/50 backdrop-blur-sm border-white/20">
-                Ver Funciones
-              </Button>
+              <Link href="/register">
+                <Button size="lg" className="rounded-full px-8 h-12 text-base font-bold shadow-lg shadow-primary/20">
+                  Lanza tu Plataforma
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="lg" variant="outline" className="rounded-full px-8 h-12 text-base font-bold bg-background/50 backdrop-blur-sm border-white/20">
+                  Prueba 24h Gratis
+                </Button>
+              </Link>
             </div>
 
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 max-w-sm mx-auto lg:mx-0">
@@ -170,11 +174,13 @@ export default function LandingPage() {
                   Únete a los operadores que ya están ahorrando horas de trabajo manual cada día con nuestra tecnología.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                   <Button size="lg" variant="secondary" className="px-10 font-bold rounded-full">
-                      Hablemos Hoy
-                   </Button>
+                   <Link href="/register">
+                    <Button size="lg" variant="secondary" className="px-10 font-bold rounded-full">
+                        Empezar Ahora
+                    </Button>
+                   </Link>
                    <Button size="lg" variant="outline" className="px-10 font-bold rounded-full border-white/20 hover:bg-white/10">
-                      Planes de Precios
+                      Ver Demo Video
                    </Button>
                 </div>
              </div>
@@ -197,9 +203,6 @@ export default function LandingPage() {
                <a href="#" className="hover:text-primary transition-colors">Privacidad</a>
                <a href="#" className="hover:text-primary transition-colors">Soporte</a>
                <a href="#" className="hover:text-primary transition-colors">Términos</a>
-               <Link href="/super-admin" className="text-[10px] uppercase tracking-widest font-black opacity-30 hover:opacity-100 transition-opacity">
-                  Portal Global
-               </Link>
             </nav>
           </div>
 

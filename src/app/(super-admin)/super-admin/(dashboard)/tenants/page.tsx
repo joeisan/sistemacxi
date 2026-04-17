@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { StatusToggleButton } from '@/components/super-admin/status-toggle-button'
 import { SendAlertButton } from '@/components/super-admin/send-alert-button'
+import { TrialActions } from '@/components/super-admin/trial-actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,28 +61,44 @@ export default async function SuperAdminTenantsPage() {
                     <TableRow key={tenant.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell>
                         <div className="flex flex-col min-w-[180px]">
-                        <span className="font-semibold text-foreground text-xs">{tenant.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">{tenant.subdomain}.localhost</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground text-xs">{tenant.name}</span>
+                            {tenant.trial_upgrade_requested && (
+                              <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">SOLICITUD UPGRADE</Badge>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono">{tenant.subdomain}.sistemacxi.vercel.app</span>
                         </div>
                     </TableCell>
                     <TableCell>
                         <div className="flex flex-col gap-1.5 min-w-[140px]">
-                        <Badge variant="secondary" className="w-fit text-[10px] uppercase font-bold tracking-wider px-2">
-                            {tenant.plan_type || 'Prueba'}
-                        </Badge>
-                        {tenant.plan_expiry_date ? (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={tenant.is_trial ? "outline" : "secondary"} className={`w-fit text-[10px] uppercase font-bold tracking-wider px-2 ${tenant.is_trial ? 'border-primary text-primary' : ''}`}>
+                              {tenant.is_trial ? 'Prueba 24h' : (tenant.plan_type || 'Activado')}
+                          </Badge>
+                        </div>
+                        
+                        {tenant.is_trial && tenant.trial_ends_at && (
+                          <div className="flex flex-col">
+                              <span className={`text-[10px] font-bold flex items-center gap-1 ${
+                                  new Date(tenant.trial_ends_at) < new Date() ? 'text-destructive' : 'text-primary'
+                              }`}>
+                                  Expira: {new Date(tenant.trial_ends_at).toLocaleString()}
+                              </span>
+                              {new Date(tenant.trial_ends_at) < new Date() && (
+                                  <span className="text-[8px] text-destructive uppercase font-black">Prueba Terminada</span>
+                              )}
+                          </div>
+                        )}
+
+                        {!tenant.is_trial && tenant.plan_expiry_date && (
                             <div className="flex flex-col">
                                 <span className={`text-[10px] font-bold flex items-center gap-1 ${
                                     new Date(tenant.plan_expiry_date) < new Date() ? 'text-destructive' : 'text-muted-foreground'
                                 }`}>
-                                    Exp: {new Date(tenant.plan_expiry_date).toLocaleDateString()}
+                                    Plan Exp: {new Date(tenant.plan_expiry_date).toLocaleDateString()}
                                 </span>
-                                {new Date(tenant.plan_expiry_date) < new Date() && (
-                                    <span className="text-[8px] text-destructive uppercase font-black">Expirado</span>
-                                )}
                             </div>
-                        ) : (
-                            <span className="text-[10px] text-muted-foreground italic">Sin fecha exp.</span>
                         )}
                         </div>
                     </TableCell>
@@ -93,6 +110,8 @@ export default async function SuperAdminTenantsPage() {
                     </TableCell>
                     <TableCell>
                         <div className="flex justify-end items-center gap-2">
+                        <TrialActions tenantId={tenant.id} isTrial={tenant.is_trial} />
+                        
                         <SendAlertButton tenantId={tenant.id} tenantName={tenant.name} />
                         
                         <Link href={`/super-admin/tenants/${tenant.id}`} title="Editar detalles">
@@ -101,15 +120,16 @@ export default async function SuperAdminTenantsPage() {
                             </Button>
                         </Link>
 
-                        <Link 
-                            href={`http://${tenant.subdomain}.localhost:3000`} 
+                        <a 
+                            href={`https://${tenant.subdomain}.sistemacxi.vercel.app`} 
                             target="_blank"
                             title="Ir al sitio"
+                            rel="noopener noreferrer"
                         >
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
                             <ExternalLink className="h-3.5 w-3.5" />
                             </Button>
-                        </Link>
+                        </a>
                         </div>
                     </TableCell>
                     </TableRow>
