@@ -111,9 +111,9 @@ export default async function AdminDashboardLayout({
   )
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row relative">
+    <div className="flex flex-col min-h-screen w-full bg-muted/40">
       {!tenantData.is_active && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-destructive/90 backdrop-blur-sm text-destructive-foreground py-2 px-4 shadow-lg flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="sticky top-0 z-[101] w-full bg-destructive/90 backdrop-blur-sm text-destructive-foreground py-2 px-4 shadow-lg flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500">
            <ShieldAlert className="h-4 w-4 shrink-0" />
            <p className="text-sm font-bold tracking-tight">
              MODO SOLO LECTURA: Tu cuenta ha sido suspendida. Contacta a soporte para más detalles.
@@ -122,7 +122,7 @@ export default async function AdminDashboardLayout({
       )}
 
       {isExpired && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-orange-600 backdrop-blur-sm text-white py-2 px-4 shadow-lg flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="sticky top-0 z-[100] w-full bg-orange-600 backdrop-blur-sm text-white py-2 px-4 shadow-lg flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
            <Zap className="h-4 w-4 shrink-0 fill-current animate-pulse" />
            <p className="text-sm font-bold tracking-tight">
              TU PLAN HA EXPIRADO: Tu cuenta está en modo lectura. Por favor reactiva tu suscripción para continuar.
@@ -138,8 +138,9 @@ export default async function AdminDashboardLayout({
         </div>
       )}
 
-      {/* Sidebar Desktop */}
-      <aside className={`hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex sticky top-0 h-screen overflow-y-auto ${!tenantData.is_active ? 'pt-10' : ''}`}>
+      <div className="flex flex-1 flex-col md:flex-row relative">
+        {/* Sidebar Desktop */}
+        <aside className="hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex sticky top-0 h-screen overflow-y-auto">
         <div className="flex h-16 items-center border-b px-6 bg-primary/5">
           <Link href={`/${tenant}/admin`} className="flex items-center gap-2 font-bold text-lg tracking-tight group">
             {tenantData.logo_url ? (
@@ -192,7 +193,7 @@ export default async function AdminDashboardLayout({
         </div>
       </aside>
 
-      <div className={`flex flex-1 flex-col ${!tenantData.is_active ? 'pt-10' : ''}`}>
+      <div className="flex flex-1 flex-col min-w-0">
         <MobileNav 
           title={tenantData.name} 
           items={navItems} 
@@ -204,6 +205,7 @@ export default async function AdminDashboardLayout({
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 md:pt-4 md:gap-8">
           {children}
         </main>
+      </div>
       </div>
     </div>
   )
