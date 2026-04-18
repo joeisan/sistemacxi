@@ -23,7 +23,7 @@ const registerSchema = z.object({
 
 type FormData = z.infer<typeof registerSchema>
 
-export function RegisterForm({ tenantId, tenantName }: { tenantId: string, tenantName: string }) {
+export function RegisterForm({ tenantId, tenantName, tenantSlug }: { tenantId: string, tenantName: string, tenantSlug: string }) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   
@@ -46,10 +46,10 @@ export function RegisterForm({ tenantId, tenantName }: { tenantId: string, tenan
       toast.success('¡Registro exitoso!', {
         description: `Tu casillero ${result.data?.clientCode} ha sido creado. Redirigiendo al inicio de sesión...`
       });
-
+      
       // Redirect to login after successful registration
       setTimeout(() => {
-        router.push('/')
+        router.push(`/${tenantSlug}/login`)
       }, 2000)
       
     } catch (error) {

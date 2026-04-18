@@ -36,13 +36,27 @@ export default async function AdminDashboardPage({
     .eq('tenant_id', tenantData.id)
     .neq('status', 'entregado')
 
-  // 2. Fetch Alerts (from Super Admin)
   const { data: tenantAlerts } = await supabase
     .from('tenant_alerts')
     .select('*')
     .eq('tenant_id', tenantData.id)
     .eq('is_read', false)
     .order('created_at', { ascending: false })
+
+  // 2.1 Check for Missing Config (Plans and Locker)
+  const { count: plansCount } = await supabase
+    .from('pricing_plans')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantData.id)
+
+  const { data: settings } = await supabase
+    .from('tenant_settings')
+    .select('client_code_prefix, locker_address_line_1')
+    .eq('tenant_id', tenantData.id)
+    .single()
+
+  const isConfigIncomplete = !settings?.client_code_prefix || !settings?.locker_address_line_1
+  const hasNoPlans = (plansCount || 0) === 0
 
   // 3. Fetch recent clients
   const { data: recentClients } = await supabase
@@ -71,6 +85,24 @@ export default async function AdminDashboardPage({
 
       {/* --- ALERTAS INTELIGENTES --- */}
       <div className="flex flex-col gap-4">
+        {hasNoPlans && (
+          <DashboardAlert 
+            id={`system-no-plans-${tenantData.id}`}
+            type="error"
+            message="Debes crear por lo menos 1 plan desde tu panel antes de poder agregar clientes o que se registren."
+            tenantId={tenantData.id}
+          />
+        )}
+
+        {isConfigIncomplete && (
+          <DashboardAlert 
+            id={`system-incomplete-config-${tenantData.id}`}
+            type="error"
+            message="Debes primero crear o asignar y guardar tu código de casillero y dirección antes de que puedas crear clientes o se puedan registrar."
+            tenantId={tenantData.id}
+          />
+        )}
+
         {isExpiringSoon && (
           <DashboardAlert 
             id={`system-expiry-${tenantData.id}`}

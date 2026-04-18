@@ -74,10 +74,12 @@ export function MobileNav({ title, items, footerItems, logo, extraContent }: Mob
         } />
         <SheetContent side="left" className="w-72 p-0 flex flex-col">
           <SheetHeader className="p-6 border-b text-left">
-            <SheetTitle className="flex items-center gap-2">
-              {logo && <img src={logo} alt="Logo de la empresa" className="h-8 w-auto object-contain" />}
-              <span className="truncate">{title}</span>
-            </SheetTitle>
+            <div className="flex items-center gap-3 mb-2">
+               {logo && <img src={logo} alt="Logo" className="h-8 w-auto object-contain" />}
+               <div className="flex flex-col truncate">
+                  <SheetTitle className="text-sm font-bold truncate tracking-tight">{title}</SheetTitle>
+               </div>
+            </div>
           </SheetHeader>
           
           <nav className="flex-1 space-y-1 p-4">

@@ -113,15 +113,15 @@ export default async function ClientDashboardLayout({
     </div>
   )
 
-  // 3. Fetch client full name for display (Refined with tenant filter)
+  // 3. Fetch client full name for display (Refined with tenant filter and profile join)
   const { data: profileInfo, error: profileError } = await supabase
     .from('clients')
-    .select('full_name')
+    .select('full_name, profiles(full_name)')
     .eq('profile_id', user.id)
     .eq('tenant_id', tenantData.id)
     .single()
 
-  const displayName = profileInfo?.full_name || user.email
+  const displayName = profileInfo?.full_name || (profileInfo?.profiles as any)?.full_name || user.email
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
@@ -133,7 +133,8 @@ export default async function ClientDashboardLayout({
             ) : (
               <div className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{tenantData.name}</div>
             )}
-            <div className="font-bold text-base text-foreground truncate tracking-tight">{displayName}</div>
+            <div className="font-bold text-base text-foreground truncate tracking-tight">{profileInfo?.full_name || 'Usuario'}</div>
+            <div className="text-[10px] text-muted-foreground truncate">{user.email}</div>
         </div>
         
         <div className="flex-1 flex flex-col justify-between overflow-y-auto py-6">

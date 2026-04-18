@@ -31,6 +31,6 @@ export async function updateClient(data: UpdateClientData) {
     return { success: false, error: error.message }
   }
 
-  revalidatePath('/admin/clientes')
+  revalidatePath('/[tenant]/admin/clientes', 'page')
   return { success: true }
 }

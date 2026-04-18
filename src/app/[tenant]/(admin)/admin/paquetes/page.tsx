@@ -135,7 +135,7 @@ export default async function AdminPaquetesPage({
         </div>
         {!isReadOnly ? (
           <Button asChild className="shadow-lg shadow-primary/20 font-bold uppercase tracking-tight">
-            <Link href="/admin/paquetes/nuevo">
+            <Link href={`/${tenant}/admin/paquetes/nuevo`}>
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Paquete
             </Link>

@@ -35,10 +35,17 @@ export default async function ClientPaquetesPage({
 
   if (!clientData) {
     return (
-      <div className="p-12 text-center bg-card rounded-2xl border border-dashed border-primary/20 shadow-sm animate-in fade-in duration-500">
-        <Package className="h-12 w-12 text-primary/20 mx-auto mb-4" />
-        <h2 className="text-xl font-black tracking-tight text-foreground">Perfil No Encontrado</h2>
-        <p className="text-muted-foreground text-sm max-w-xs mx-auto mt-2">No se encontró información de tu casillero. Contacta con soporte para activarlo.</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in duration-500">
+        <div className="rounded-full bg-primary/10 p-4 mb-6">
+          <Package className="h-12 w-12 text-primary" />
+        </div>
+        <h2 className="text-2xl font-black tracking-tight text-foreground">Tu perfil aún no está activo</h2>
+        <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2 mb-8">
+          Estamos terminando de configurar tu casillero. Por favor, intenta refrescar la página en unos momentos o contacta a soporte si el problema persiste.
+        </p>
+        <Button asChild variant="outline">
+          <Link href={`/${tenant}/dashboard`}>Volver al Inicio</Link>
+        </Button>
       </div>
     )
   }

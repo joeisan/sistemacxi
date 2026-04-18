@@ -31,7 +31,25 @@ export default async function ClientFinanzasPage({
     .eq('profile_id', user.id)
     .single()
 
-  if (!clientData) return notFound()
+  if (!clientData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in duration-500">
+        <div className="rounded-full bg-primary/10 p-4 mb-6">
+          <CreditCard className="h-12 w-12 text-primary" />
+        </div>
+        <h2 className="text-2xl font-black tracking-tight text-foreground">Tu estado de cuenta aún no está listo</h2>
+        <p className="text-muted-foreground text-sm max-w-sm mx-auto mt-2 mb-8">
+          No logramos encontrar registros financieros para tu cuenta. Si acabas de registrarte, danos unos minutos. 
+          De lo contrario, contacta a la administración de tu casillero.
+        </p>
+        <div className="flex gap-4">
+             <Button asChild variant="default">
+               <Link href={`/${tenant}/dashboard`}>Volver al Inicio</Link>
+             </Button>
+        </div>
+      </div>
+    )
+  }
 
   // Fetch packages with billing
   const { data: packages } = await supabase

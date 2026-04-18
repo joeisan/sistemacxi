@@ -44,7 +44,11 @@ export default async function TenantRegistroPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterForm tenantId={tenantData.id} tenantName={tenantData.name} />
+            <RegisterForm 
+              tenantId={tenantData.id} 
+              tenantName={tenantData.name} 
+              tenantSlug={tenant}
+            />
             <div className="mt-6 text-center text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{' '}
               <Link href={`/${tenant}`} className="font-medium text-primary hover:underline">

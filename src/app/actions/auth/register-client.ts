@@ -69,7 +69,21 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
     return { success: false, error: 'Error creando perfil del usuario' }
   }
 
-  // 4. Generate Client Code via Postgres RPC
+  // 4. Verify Tenant Config (Hard Block)
+  const [{ data: plansCountData }, { data: settingsData }] = await Promise.all([
+    adminClient.from('pricing_plans').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+    adminClient.from('tenant_settings').select('client_code_prefix, locker_address_line_1').eq('tenant_id', tenantId).single()
+  ])
+
+  if (!plansCountData || plansCountData < 1) {
+    return { success: false, error: 'El administrador aún no ha configurado planes de cobro.' }
+  }
+
+  if (!settingsData?.client_code_prefix || !settingsData?.locker_address_line_1) {
+    return { success: false, error: 'El administrador aún no ha configurado la dirección del casillero.' }
+  }
+
+  // 5. Generate Client Code via Postgres RPC
   const { data: rpcData, error: rpcError } = await adminClient
     .rpc('generate_client_code', { p_tenant_id: tenantId })
     .single()
