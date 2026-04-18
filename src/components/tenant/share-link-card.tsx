@@ -106,7 +106,6 @@ export function ShareLinkCard({ subdomain }: ShareLinkCardProps) {
               >
                 {copiedSubdomain ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
-            </div>
           </div>
         
         <p className="text-[10px] text-muted-foreground mt-4 text-center italic opacity-70">
