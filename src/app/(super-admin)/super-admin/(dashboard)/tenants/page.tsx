@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Plus, ExternalLink, Edit, Building2 } from 'lucide-react'
+import { Plus, ExternalLink, Edit, Building2, Globe2, ArrowRight } from 'lucide-react'
 import { headers } from 'next/headers'
 import { Badge } from "@/components/ui/badge"
 import { StatusToggleButton } from '@/components/super-admin/status-toggle-button'
@@ -10,23 +10,14 @@ import { SendAlertButton } from '@/components/super-admin/send-alert-button'
 import { TrialActions } from '@/components/super-admin/trial-actions'
 import { DeleteTenantButton } from '@/components/super-admin/delete-tenant-button'
 import { DataTableResponsive, ColumnDef } from '@/components/ui/data-table-responsive'
+import { getRootDomain, getTenantSubdomainUrl, getTenantPathUrl } from '@/lib/utils/host'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SuperAdminTenantsPage() {
   const supabase = createAdminClient()
   const host = (await headers()).get('host') || ''
-  
-  // Determine root domain
-  const parts = host.split('.')
-  let rootDomain = host
-  if (host.includes('sistemacxi.vercel.app')) {
-    rootDomain = 'sistemacxi.vercel.app'
-  } else if (parts.length > 2 && !host.includes('localhost')) {
-    rootDomain = parts.slice(-2).join('.')
-  } else if (host.includes('localhost')) {
-    rootDomain = 'localhost:3000'
-  }
+  const rootDomain = getRootDomain(host)
 
   const { data: tenants, error } = await supabase
     .from('tenants')
@@ -73,7 +64,9 @@ export default async function SuperAdminTenantsPage() {
               <Badge variant="destructive" className="h-4 px-1 text-[10px] animate-pulse">SOLICITUD UPGRADE</Badge>
             )}
           </div>
-          <span className="text-xs text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded w-fit italic">{tenant.subdomain}.{rootDomain}</span>
+          <span className="text-xs text-primary font-mono bg-primary/5 px-1.5 py-0.5 rounded w-fit italic border border-primary/10">
+            {rootDomain}/{tenant.subdomain}/admin
+          </span>
         </div>
       )
     },
@@ -143,24 +136,31 @@ export default async function SuperAdminTenantsPage() {
           )
         }}
         actions={(tenant) => {
-          const protocol = host.includes('localhost') ? 'http' : 'https'
-          const companyUrl = `${protocol}://${tenant.subdomain}.${rootDomain}`
+          const companySubdomainUrl = getTenantSubdomainUrl(tenant.subdomain, rootDomain, host)
+          const companyPathUrl = `/${tenant.subdomain}/admin` // Keep local relative path for easy navigation
+          
           return (
-            <>
+            <div className="flex items-center gap-2">
               <TrialActions tenantId={tenant.id} isTrial={tenant.is_trial} />
-              <SendAlertButton tenantId={tenant.id} tenantName={tenant.name} />
-              <Link href={`/super-admin/tenants/${tenant.id}`}>
-                <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary transition-all">
-                  <Edit className="h-3.5 w-3.5" />
-                </Button>
-              </Link>
-              <DeleteTenantButton tenantId={tenant.id} tenantName={tenant.name} />
-              <a href={companyUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
-              </a>
-            </>
+              
+              <div className="flex flex-col gap-1 pr-2 border-r mr-2 min-w-[120px]">
+                  <a href={companyPathUrl} target="_blank" rel="noopener noreferrer" title="Ver con Ruta Slug (Recomendado)">
+                    <Button variant="default" size="xs" className="h-6 text-[9px] font-black uppercase shadow-sm w-full justify-start px-2">
+                      <ArrowRight className="h-3 w-3 mr-1.5" /> Ver Panel (Ruta)
+                    </Button>
+                  </a>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <SendAlertButton tenantId={tenant.id} tenantName={tenant.name} />
+                <Link href={`/super-admin/tenants/${tenant.id}`}>
+                  <Button variant="outline" size="icon" className="h-8 w-8 hover:border-primary hover:text-primary transition-all">
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+                <DeleteTenantButton tenantId={tenant.id} tenantName={tenant.name} />
+              </div>
+            </div>
           )
         }}
       />

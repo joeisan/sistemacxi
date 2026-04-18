@@ -15,7 +15,7 @@ interface Courier {
   is_active: boolean
 }
 
-export function CourierManager({ tenantId, initialCouriers }: { tenantId: string, initialCouriers: Courier[] }) {
+export function CourierManager({ tenantId, initialCouriers, isReadOnly }: { tenantId: string, initialCouriers: Courier[], isReadOnly?: boolean }) {
   const [couriers, setCouriers] = useState<Courier[]>(initialCouriers)
   const [newName, setNewName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -71,9 +71,10 @@ export function CourierManager({ tenantId, initialCouriers }: { tenantId: string
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             required
+            disabled={isReadOnly}
           />
         </div>
-        <Button type="submit" disabled={isLoading || !newName.trim()}>
+        <Button type="submit" disabled={isLoading || !newName.trim() || isReadOnly}>
           <Plus className="h-4 w-4 mr-2" />
           Agregar
         </Button>
@@ -91,8 +92,8 @@ export function CourierManager({ tenantId, initialCouriers }: { tenantId: string
               <button
                 type="button"
                 onClick={() => handleDelete(courier.id, courier.name)}
-                className="ml-1 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                disabled={isLoading}
+                className="ml-1 rounded-full p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                disabled={isLoading || isReadOnly}
               >
                 <Trash2 className="h-3 w-3" />
               </button>

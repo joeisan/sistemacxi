@@ -3,9 +3,11 @@ import { AddressManager } from '@/components/tenant/address-manager'
 import { SequenceManager } from '@/components/tenant/sequence-manager'
 import { CourierManager } from '@/components/tenant/courier-manager'
 import { BrandingManager } from '@/components/tenant/branding-manager'
+import { ShareLinkCard } from '@/components/tenant/share-link-card'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
 export default async function AdminConfiguracionPage({
   params,
@@ -41,6 +43,8 @@ export default async function AdminConfiguracionPage({
     .eq('tenant_id', tenantData.id)
     .order('name', { ascending: true })
 
+  const isReadOnly = !tenantData.is_active || isTenantExpired(tenantData)
+
   return (
     <div className="flex flex-col gap-8 max-w-6xl mx-auto pb-12">
       <div className="flex flex-col gap-2">
@@ -49,6 +53,9 @@ export default async function AdminConfiguracionPage({
       </div>
 
       <div className="grid gap-8">
+        {/* --- SHARE LINK SECTION --- */}
+        <ShareLinkCard subdomain={tenantData.subdomain} />
+
         {/* --- BRANDING & BASIC INFO --- */}
         <Card className="border-none shadow-xl bg-gradient-to-br from-background to-muted/30">
             <CardHeader>
@@ -63,6 +70,7 @@ export default async function AdminConfiguracionPage({
                     initialName={tenantData.name}
                     primaryColor={tenantData.primary_color || '#000000'}
                     secondaryColor={tenantData.secondary_color || '#ffffff'}
+                    isReadOnly={isReadOnly}
                 />
             </CardContent>
         </Card>
@@ -81,6 +89,7 @@ export default async function AdminConfiguracionPage({
                     currentSequence={settings?.current_sequence || 0} 
                     prefix={settings?.client_code_prefix || 'BOX'}
                     suffix={settings?.client_code_suffix || ''}
+                    isReadOnly={isReadOnly}
                 />
             </CardContent>
         </Card>
@@ -97,6 +106,7 @@ export default async function AdminConfiguracionPage({
             <AddressManager 
                 tenantId={tenantData.id} 
                 initialAddresses={addresses || []} 
+                isReadOnly={isReadOnly}
             />
           </CardContent>
         </Card>
@@ -110,7 +120,7 @@ export default async function AdminConfiguracionPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CourierManager tenantId={tenantData.id} initialCouriers={couriers || []} />
+            <CourierManager tenantId={tenantData.id} initialCouriers={couriers || []} isReadOnly={isReadOnly} />
           </CardContent>
         </Card>
       </div>

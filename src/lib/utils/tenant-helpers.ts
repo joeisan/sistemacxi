@@ -6,18 +6,28 @@
 export function isTenantExpired(tenant: any): boolean {
   if (!tenant) return false
 
+  // If explicitly suspended, we consider it "blocked" but this helper is for dates
+  // (The pages check !is_active separately or in conjunction)
+
   const now = new Date()
+  const expiryDate = getEffectiveExpiryDate(tenant)
+  
+  if (!expiryDate) return false
+
+  // Normalize now to start of day if comparing against simple dates?
+  // Actually, since these are TIMESTAMPTZ, direct comparison is better
+  return new Date(expiryDate) < now
+}
+
+/**
+ * Returns the relevant expiration date for the tenant, regardless of whether it's a trial or paid plan.
+ */
+export function getEffectiveExpiryDate(tenant: any): string | null {
+  if (!tenant) return null
 
   if (tenant.is_trial) {
-    if (!tenant.trial_ends_at) return false // Should not happen
-    return new Date(tenant.trial_ends_at) < now
+    return tenant.trial_ends_at || null
   }
 
-  // If not trial, check plan expiry
-  if (tenant.plan_expiry_date) {
-    return new Date(tenant.plan_expiry_date) < now
-  }
-
-  // If no trial and no expiry date, assume active (infinite/managed manually)
-  return false
+  return tenant.plan_expiry_date || null
 }

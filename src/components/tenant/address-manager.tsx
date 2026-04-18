@@ -20,7 +20,7 @@ interface Address {
   is_default: boolean
 }
 
-export function AddressManager({ tenantId, initialAddresses }: { tenantId: string, initialAddresses: Address[] }) {
+export function AddressManager({ tenantId, initialAddresses, isReadOnly }: { tenantId: string, initialAddresses: Address[], isReadOnly?: boolean }) {
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -172,7 +172,7 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
                       className="h-5 w-5 rounded-lg border-2 border-primary/20 text-primary focus:ring-primary/20 bg-muted/30" />
                     <Label htmlFor="default" className="text-[11px] font-black uppercase tracking-tighter text-foreground">Sede Predeterminada</Label>
                 </div>
-                <Button type="submit" disabled={isLoading} className="flex-1 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-xs h-11">
+                <Button type="submit" disabled={isLoading || isReadOnly} className="flex-1 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-xs h-11">
                     {isLoading ? 'Procesando...' : (isEditing ? 'Actualizar Dirección' : 'Registrar Sede')}
                 </Button>
             </div>
@@ -194,7 +194,7 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
               </Badge>
             )
           }}
-          actions={(a) => (
+          actions={isReadOnly ? undefined : (a) => (
             <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={() => { setIsEditing(true); setFormData(a); }} className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/5">
                     <Pencil className="h-4 w-4" />

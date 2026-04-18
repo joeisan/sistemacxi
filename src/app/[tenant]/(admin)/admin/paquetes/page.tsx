@@ -21,7 +21,7 @@ export default async function AdminPaquetesPage({
 
   if (!tenantData) return notFound()
 
-  const isExpired = isTenantExpired(tenantData)
+  const isReadOnly = !tenantData.is_active || isTenantExpired(tenantData)
   const supabase = createAdminClient()
 
   // Fetch packages for this tenant
@@ -109,7 +109,7 @@ export default async function AdminPaquetesPage({
     {
       header: 'Estado Sistema',
       render: (pkg) => (
-        !isExpired ? (
+        !isReadOnly ? (
           <StatusSelector packageId={pkg.id} currentStatus={pkg.status} />
         ) : (
           <Badge variant="outline" className="text-[8px] uppercase font-black tracking-widest bg-muted border-none p-1">
@@ -133,7 +133,7 @@ export default async function AdminPaquetesPage({
             <p className="text-xs font-medium text-muted-foreground">Flujo de entrada, inventario y facturación de envíos.</p>
           </div>
         </div>
-        {!isExpired ? (
+        {!isReadOnly ? (
           <Button asChild className="shadow-lg shadow-primary/20 font-bold uppercase tracking-tight">
             <Link href="/admin/paquetes/nuevo">
               <Plus className="h-4 w-4 mr-2" />
@@ -142,7 +142,7 @@ export default async function AdminPaquetesPage({
           </Button>
         ) : (
           <Badge variant="destructive" className="animate-pulse px-4 py-2 font-black uppercase text-[10px] border-none">
-            Lectura - Plan Expirado
+            {tenantData.is_active ? 'Lectura - Plan Expirado' : 'Lectura - Cuenta Suspendida'}
           </Badge>
         )}
       </div>
@@ -165,7 +165,7 @@ export default async function AdminPaquetesPage({
         }}
         actions={(pkg: any) => {
           const client = Array.isArray(pkg.clients) ? pkg.clients[0] : pkg.clients;
-          return !isExpired ? (
+          return !isReadOnly ? (
             <BillingDialog packageData={pkg} clientPlan={client?.pricing_plans} />
           ) : (
             <Badge variant="outline" className="text-[9px] font-black uppercase bg-muted text-muted-foreground">Lectura</Badge>

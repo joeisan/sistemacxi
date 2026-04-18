@@ -71,15 +71,15 @@ export default async function ClientDashboardLayout({
   }
 
   const navItems = [
-    { href: `/dashboard`, label: 'Inicio', iconName: 'Home' },
-    { href: `/dashboard/rastrear`, label: 'Rastrear paquete', iconName: 'MapPin' },
-    { href: `/dashboard/paquetes`, label: 'Mis Paquetes', iconName: 'Package' },
-    { href: `/dashboard/finanzas`, label: 'Estado de Cuenta', iconName: 'CreditCard' },
-    { href: `/dashboard/notificaciones`, label: 'Notificaciones', iconName: 'Bell' },
+    { href: `/${tenant}/dashboard`, label: 'Inicio', iconName: 'Home' },
+    { href: `/${tenant}/dashboard/rastrear`, label: 'Rastrear paquete', iconName: 'MapPin' },
+    { href: `/${tenant}/dashboard/paquetes`, label: 'Mis Paquetes', iconName: 'Package' },
+    { href: `/${tenant}/dashboard/finanzas`, label: 'Estado de Cuenta', iconName: 'CreditCard' },
+    { href: `/${tenant}/dashboard/notificaciones`, label: 'Notificaciones', iconName: 'Bell' },
   ]
 
   const footerItems = [
-    { href: `/dashboard/perfil`, label: 'Mi Perfil', iconName: 'User' },
+    { href: `/${tenant}/dashboard/perfil`, label: 'Mi Perfil', iconName: 'User' },
     { href: '#', label: 'Cerrar sesión', iconName: 'LogOut' },
   ]
 
@@ -96,15 +96,15 @@ export default async function ClientDashboardLayout({
             <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground font-medium">Costo x Lb:</span>
-                    <span className="font-mono font-bold text-foreground text-base">${planInfo?.cost_per_lb?.toFixed(2) || '3.00'}</span>
+                    <span className="font-mono font-black text-foreground text-xl bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10 shadow-inner">${planInfo?.cost_per_lb?.toFixed(2) || '3.00'}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground font-medium">Delivery:</span>
-                    <span className="font-mono font-bold text-foreground text-base">${planInfo?.delivery_fee?.toFixed(2) || '0.50'}</span>
+                    <span className="font-mono font-black text-foreground text-xl bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10 shadow-inner">${planInfo?.delivery_fee?.toFixed(2) || '0.50'}</span>
                 </div>
             </div>
             <Link 
-                href="/dashboard/finanzas" 
+                href={`/${tenant}/dashboard/finanzas`} 
                 className="mt-3 flex items-center justify-center gap-1 w-full py-2 rounded-md text-[10px] font-black uppercase tracking-tighter bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
             >
                 Ver detalles <ChevronRight className="h-3 w-3" />

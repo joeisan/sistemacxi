@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from 'zod'
 import { headers } from 'next/headers'
+import { getRootDomain } from '@/lib/utils/host'
 
 const loginSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
@@ -47,21 +48,12 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
 
   // 3. Determine redirect based on role
   const host = (await headers()).get('host') || ''
-  
-  // Calculate root domain dynamically
+  const currentRoot = getRootDomain(host)
   const parts = host.split('.')
-  let currentRoot = host
-  
-  if (host.includes('sistemacxi.vercel.app')) {
-    currentRoot = 'sistemacxi.vercel.app'
-  } else if (parts.length > 2 && !host.includes('localhost')) {
-    currentRoot = parts.slice(-2).join('.')
-  } else if (host.includes('localhost')) {
-    currentRoot = 'localhost:3000'
-  }
 
-  // Check if we are already on a subdomain
-  const isOnSubdomain = parts.length > 2 || (host.includes('localhost') && host.split('.').length > 1 && !host.startsWith('localhost'))
+  // Check if we are already on a subdomain (ignoring www)
+  const isOnSubdomain = (parts.length > 2 && !host.startsWith('www.')) || 
+                        (host.includes('localhost') && parts.length > 1 && !host.startsWith('localhost'))
 
   let redirectPath = '/'
 
@@ -69,7 +61,7 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
     redirectPath = '/super-admin'
   } else {
     // Determine the tenant subdomain
-    let activeSubdomain = tenantSlug // This is a bit confusingly named in the schema/params
+    let activeSubdomain = tenantSlug 
     if (!activeSubdomain && profile.tenant_id) {
       const { data: tenant } = await adminClient
         .from('tenants')
@@ -84,13 +76,9 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
 
     const basePath = profile.role === 'admin' ? '/admin' : '/dashboard'
     
-    // If we are already on the correct subdomain, use a clean path.
-    // Otherwise, use the path with the subdomain segment so the dynamic route [tenant] matches.
-    if (isOnSubdomain) {
-      redirectPath = basePath
-    } else {
-      redirectPath = activeSubdomain ? `/${activeSubdomain}${basePath}` : basePath
-    }
+    // Always return the path-based URL with the tenant slug.
+    // This ensures that even if login was attempted on a subdomain, the user is moved to the root domain path.
+    redirectPath = activeSubdomain ? `/${activeSubdomain}${basePath}` : basePath
   }
 
   return { success: true, redirectPath }

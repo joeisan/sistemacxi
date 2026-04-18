@@ -13,9 +13,10 @@ interface BrandingManagerProps {
   initialName: string
   primaryColor: string
   secondaryColor: string
+  isReadOnly?: boolean
 }
 
-export function BrandingManager({ tenantId, initialName, primaryColor, secondaryColor }: BrandingManagerProps) {
+export function BrandingManager({ tenantId, initialName, primaryColor, secondaryColor, isReadOnly }: BrandingManagerProps) {
   const [name, setName] = useState(initialName)
   const [primary, setPrimary] = useState(primaryColor)
   const [secondary, setSecondary] = useState(secondaryColor)
@@ -69,6 +70,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
           onChange={(e) => setName(e.target.value)}
           placeholder="Mi Courier S.A.S"
           className="text-base font-semibold"
+          disabled={isReadOnly}
         />
       </div>
 
@@ -96,6 +98,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
               placeholder="#000000"
               className="font-mono font-bold text-sm uppercase flex-1"
               maxLength={7}
+              disabled={isReadOnly}
             />
           </div>
           {/* Presets */}
@@ -108,6 +111,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
                 className={`h-7 w-7 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${primary === color ? 'border-foreground ring-2 ring-foreground/20 scale-110' : 'border-transparent hover:border-muted-foreground/30'}`}
                 style={{ backgroundColor: color }}
                 title={color}
+                disabled={isReadOnly}
               />
             ))}
           </div>
@@ -127,6 +131,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
                 onChange={(e) => setSecondary(e.target.value)}
                 className="h-12 w-12 rounded-xl cursor-pointer border-2 border-border shadow-sm hover:shadow-md transition-shadow"
                 style={{ padding: 0 }}
+                disabled={isReadOnly}
               />
             </div>
             <Input 
@@ -135,6 +140,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
               placeholder="#ffffff"
               className="font-mono font-bold text-sm uppercase flex-1"
               maxLength={7}
+              disabled={isReadOnly}
             />
           </div>
           {/* Presets */}
@@ -147,6 +153,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
                 className={`h-7 w-7 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${secondary === color ? 'border-foreground ring-2 ring-foreground/20 scale-110' : 'border-transparent hover:border-muted-foreground/30'}`}
                 style={{ backgroundColor: color }}
                 title={color}
+                disabled={isReadOnly}
               />
             ))}
           </div>
@@ -173,7 +180,7 @@ export function BrandingManager({ tenantId, initialName, primaryColor, secondary
       {/* Guardar */}
       <Button 
         onClick={handleUpdate} 
-        disabled={isLoading || !hasChanges}
+        disabled={isLoading || !hasChanges || isReadOnly}
         className="w-full sm:w-auto self-end shadow-lg shadow-primary/20 font-bold uppercase tracking-wider"
         size="lg"
       >

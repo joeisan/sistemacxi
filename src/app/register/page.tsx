@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Loader2, AlertCircle, CheckCircle2, Globe2, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { getRootDomain } from "@/lib/utils/host"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -24,19 +25,11 @@ export default function RegisterPage() {
   const router = useRouter()
 
   // Get root domain dynamically
-  const getRootDomain = () => {
+  const getRootDomainLocal = () => {
     if (typeof window === 'undefined') return 'sistemacxi.vercel.app'
-    const host = window.location.host
-    if (host.includes('localhost')) return 'localhost:3000'
-    
-    // Specifically handle the sistemacxi.vercel.app base domain
-    if (host.includes('sistemacxi.vercel.app')) return 'sistemacxi.vercel.app'
-    
-    const parts = host.split('.')
-    if (parts.length > 2) return parts.slice(-2).join('.')
-    return host
+    return getRootDomain(window.location.host)
   }
-  const rootDomain = getRootDomain()
+  const rootDomain = getRootDomainLocal()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -75,12 +68,12 @@ export default function RegisterPage() {
              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                <Globe2 className="w-3 h-3" /> Tu dirección de acceso:
              </p>
-             <p className="font-mono text-sm font-bold text-primary truncate">
-               {formData.subdomain}.{rootDomain}
-             </p>
+              <p className="font-mono text-sm font-bold text-primary truncate">
+                {rootDomain}/{formData.subdomain}/admin
+              </p>
           </div>
           <a 
-            href={`${window.location.protocol}//${formData.subdomain}.${rootDomain}`}
+            href={`/${formData.subdomain}/admin`}
             className="block"
           >
             <Button className="w-full h-12 font-bold text-lg rounded-full">

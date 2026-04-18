@@ -13,9 +13,10 @@ interface SequenceManagerProps {
   currentSequence: number
   prefix: string
   suffix: string
+  isReadOnly?: boolean
 }
 
-export function SequenceManager({ tenantId, currentSequence, prefix, suffix }: SequenceManagerProps) {
+export function SequenceManager({ tenantId, currentSequence, prefix, suffix, isReadOnly }: SequenceManagerProps) {
   const [newVal, setNewVal] = useState((currentSequence + 1).toString())
   const [newPrefix, setNewPrefix] = useState(prefix || '')
   const [newSuffix, setNewSuffix] = useState(suffix || '')
@@ -66,6 +67,7 @@ export function SequenceManager({ tenantId, currentSequence, prefix, suffix }: S
                 onChange={(e) => setNewPrefix(e.target.value.toUpperCase())}
                 placeholder="BOX"
                 className="font-mono"
+                disabled={isReadOnly}
             />
         </div>
         <div className="space-y-2">
@@ -78,6 +80,7 @@ export function SequenceManager({ tenantId, currentSequence, prefix, suffix }: S
                 value={newVal} 
                 onChange={(e) => setNewVal(e.target.value)}
                 className="font-mono"
+                disabled={isReadOnly}
             />
         </div>
         <div className="space-y-2">
@@ -90,11 +93,12 @@ export function SequenceManager({ tenantId, currentSequence, prefix, suffix }: S
                 onChange={(e) => setNewSuffix(e.target.value.toUpperCase())}
                 placeholder=""
                 className="font-mono"
+                disabled={isReadOnly}
             />
         </div>
       </div>
 
-      <Button onClick={handleUpdate} disabled={isLoading} className="w-full font-bold">
+      <Button onClick={handleUpdate} disabled={isLoading || isReadOnly} className="w-full font-bold">
         {isLoading ? 'Guardando Cambios...' : 'Guardar Configuración de Códigos'}
       </Button>
 

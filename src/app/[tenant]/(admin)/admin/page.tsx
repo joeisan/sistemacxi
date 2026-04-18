@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
 import { DashboardAlert } from '@/components/tenant/dashboard-alert'
+import { isTenantExpired, getEffectiveExpiryDate } from '@/lib/utils/tenant-helpers'
 
 export default async function AdminDashboardPage({
   params,
@@ -51,12 +52,15 @@ export default async function AdminDashboardPage({
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // 4. Plan Expiry Logic (4 days before)
-  const daysUntilExpiry = tenantData.plan_expiry_date 
-    ? Math.ceil((new Date(tenantData.plan_expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+  // 4. Plan Expiry Logic (Using Unified Helpers)
+  const isExpired = isTenantExpired(tenantData)
+  const effectiveExpiry = getEffectiveExpiryDate(tenantData)
+
+  const daysUntilExpiry = effectiveExpiry
+    ? Math.ceil((new Date(effectiveExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null
   
-  const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 4 && daysUntilExpiry >= 0
+  const isExpiringSoon = !isExpired && daysUntilExpiry !== null && daysUntilExpiry <= 4 && daysUntilExpiry >= 0
 
   return (
     <div className="flex flex-col gap-6 max-w-full">
@@ -72,7 +76,7 @@ export default async function AdminDashboardPage({
             id={`system-expiry-${tenantData.id}`}
             type="error"
             message="¡Tu plan expirará muy pronto! Por favor contacta a soporte corporativo para la renovación."
-            planExpiryDate={tenantData.plan_expiry_date}
+            planExpiryDate={effectiveExpiry || ''}
             tenantId={tenantData.id}
           />
         )}
@@ -154,7 +158,7 @@ export default async function AdminDashboardPage({
 
       {/* --- FILA 2: ÚLTIMOS CLIENTES Y NOTIFICACIONES (tamaño natural) --- */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm bg-card">
           <CardHeader className="p-5 pb-3 border-b">
             <CardTitle className="text-sm uppercase font-bold tracking-widest flex items-center gap-2 text-muted-foreground">
               <Users className="h-4 w-4 text-primary" />
@@ -192,7 +196,7 @@ export default async function AdminDashboardPage({
           </CardContent>
         </Card>
 
-        <Card className="border shadow-sm">
+        <Card className="border shadow-sm bg-card">
           <CardHeader className="p-5 pb-3 border-b">
             <CardTitle className="text-sm uppercase font-bold tracking-widest flex items-center gap-2 text-muted-foreground">
               <Bell className="h-4 w-4 text-primary" />

@@ -7,7 +7,7 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { FontSizeSelector } from '@/components/layout/font-size-selector'
 import { Badge } from '@/components/ui/badge'
-import { isTenantExpired } from '@/lib/utils/tenant-helpers'
+import { isTenantExpired, getEffectiveExpiryDate } from '@/lib/utils/tenant-helpers'
 
 export default async function AdminDashboardLayout({
   children,
@@ -49,28 +49,27 @@ export default async function AdminDashboardLayout({
   }
 
   const isExpired = isTenantExpired(tenantData)
+  const effectiveExpiry = getEffectiveExpiryDate(tenantData)
+  
   const whatsappNumber = "50762879345"
   const whatsappMessage = encodeURIComponent(`Hola, quiero reactivar mi cuenta ${tenantData.name}`)
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
-
+ 
   let timeRemaining = ''
-  if (!isExpired) {
-    const targetDate = tenantData.is_trial ? tenantData.trial_ends_at : tenantData.plan_expiry_date;
-    if (targetDate) {
-      const diffMs = new Date(targetDate).getTime() - Date.now();
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-      
-      if (diffDays > 1) {
-        timeRemaining = `Quedan ${diffDays} días`;
-      } else if (diffHours > 0) {
-        timeRemaining = `Quedan ${diffHours} horas`;
-      } else {
-        timeRemaining = `Expira en breve`;
-      }
+  if (!isExpired && effectiveExpiry) {
+    const diffMs = new Date(effectiveExpiry).getTime() - Date.now();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    
+    if (diffDays > 1) {
+      timeRemaining = `Quedan ${diffDays} días`;
+    } else if (diffHours > 0) {
+      timeRemaining = `Quedan ${diffHours} horas`;
     } else {
-      timeRemaining = 'Tiempo ilimitado'
+      timeRemaining = `Expira en breve`;
     }
+  } else if (!isExpired && !effectiveExpiry) {
+    timeRemaining = 'Tiempo ilimitado'
   }
 
   const navItems = [
@@ -79,12 +78,21 @@ export default async function AdminDashboardLayout({
     { href: `/admin/paquetes`, label: 'Paquetes', iconName: 'Package' },
     { href: `/admin/planes`, label: 'Planes de Cobro', iconName: 'CreditCard' },
     { href: `/admin/notificaciones`, label: 'Notificaciones', iconName: 'Bell' },
-  ]
+  ].map(item => ({
+    ...item,
+    // If we are accessing via a path slug (not a subdomain), we need to prefix the href
+    // However, if the middleware rewrote it, the root is already correct.
+    // For path-based testing flexibility:
+    href: item.href.startsWith('http') ? item.href : `/${tenant}${item.href}`
+  }))
 
   const footerItems = [
     { href: `/admin/configuracion`, label: 'Configuración', iconName: 'Settings' },
     { href: '#', label: 'Cerrar sesión', iconName: 'LogOut' },
-  ]
+  ].map(item => ({
+    ...item,
+    href: (item.href === '#' || item.href.startsWith('http')) ? item.href : `/${tenant}${item.href}`
+  }))
 
   // Subscription Card for Admin (Same design as client)
   const subscriptionCard = (
@@ -106,7 +114,7 @@ export default async function AdminDashboardLayout({
                     </span>
                     <div className="flex flex-col items-end gap-1">
                       <span className={`font-mono font-bold ${isExpired ? 'text-destructive' : 'text-primary'}`}>
-                          {isExpired ? 'EXPIRADO' : (tenantData.plan_expiry_date ? new Date(tenantData.plan_expiry_date).toLocaleDateString() : 'Indefinida')}
+                          {isExpired ? 'EXPIRADO' : (effectiveExpiry ? new Date(effectiveExpiry).toLocaleDateString() : 'Indefinida')}
                       </span>
                     </div>
                 </div>

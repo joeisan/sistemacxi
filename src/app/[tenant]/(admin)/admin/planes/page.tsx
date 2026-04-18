@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DollarSign, Package, Truck, Terminal } from 'lucide-react'
@@ -18,6 +19,7 @@ export default async function AdminPlanesPage({
 
   if (!tenantData) return notFound()
 
+  const isReadOnly = !tenantData.is_active || isTenantExpired(tenantData)
   const supabase = createAdminClient()
 
   // Fetch plans for this tenant
@@ -83,7 +85,7 @@ export default async function AdminPlanesPage({
             <p className="text-xs font-medium text-muted-foreground">Configuración de tarifas comerciales para envíos.</p>
           </div>
         </div>
-        <CreatePlanDialog tenantId={tenantData.id} />
+        {!isReadOnly && <CreatePlanDialog tenantId={tenantData.id} />}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -138,7 +140,11 @@ export default async function AdminPlanesPage({
           )
         }}
         actions={(p) => (
-          <CreatePlanDialog tenantId={tenantData.id} plan={p} />
+          !isReadOnly ? (
+            <CreatePlanDialog tenantId={tenantData.id} plan={p} />
+          ) : (
+            <Badge variant="outline" className="text-[10px] font-black uppercase text-muted-foreground italic">Lectura</Badge>
+          )
         )}
       />
     </div>

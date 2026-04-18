@@ -73,7 +73,7 @@ export default async function TenantLoginPage({
 
             <div className="mt-8 text-center text-sm text-muted-foreground">
               ¿No tienes casillero?{' '}
-              <Link href="/registro" className="font-semibold text-primary hover:text-primary/80 transition-colors ml-1">
+              <Link href={`/${tenant}/registro`} className="font-semibold text-primary hover:text-primary/80 transition-colors ml-1">
                 Regístrate aquí
               </Link>
             </div>

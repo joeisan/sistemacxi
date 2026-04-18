@@ -3,6 +3,7 @@ import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
 import { RegisterPackageForm } from '@/components/tenant/register-package-form'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
 export default async function NewPackagePage({
   params,
@@ -32,6 +33,8 @@ export default async function NewPackagePage({
     .eq('is_active', true)
     .order('name', { ascending: true })
 
+  const isReadOnly = !tenantData.is_active || isTenantExpired(tenantData)
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -52,6 +55,7 @@ export default async function NewPackagePage({
                 tenantId={tenantData.id} 
                 clients={clients || []}
                 couriers={couriers || []}
+                isReadOnly={isReadOnly}
             />
           </CardContent>
         </Card>

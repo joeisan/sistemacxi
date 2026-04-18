@@ -161,38 +161,38 @@ export default async function ClientFinanzasPage({
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 shadow-sm bg-slate-50/50">
+        <Card className="rounded-2xl border-primary/10 shadow-sm bg-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-500">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-primary">
               <Receipt className="h-3.5 w-3.5" />
               Tarifa Vigente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-black text-foreground tracking-tight underline decoration-indigo-500/30 decoration-2 underline-offset-4">
+            <div className="text-lg font-black text-foreground tracking-tight underline decoration-primary/30 decoration-2 underline-offset-4">
               {(clientData.pricing_plans as any)?.name || 'Estándar'}
             </div>
-            <p className="text-[10px] font-bold text-muted-foreground mt-2 font-mono flex gap-2">
-              <span className="bg-white border rounded px-1.5">${(clientData.pricing_plans as any)?.cost_per_lb || 0}/lb</span>
-              <span className="bg-white border rounded px-1.5">+${(clientData.pricing_plans as any)?.delivery_fee || 0} del.</span>
+            <p className="text-xs font-bold text-muted-foreground mt-2 font-mono flex gap-2">
+              <span className="bg-background border-primary/20 border rounded-lg px-2 py-1 text-primary shadow-sm font-black text-base">${(clientData.pricing_plans as any)?.cost_per_lb || 0}/lb</span>
+              <span className="bg-background border-primary/20 border rounded-lg px-2 py-1 text-primary shadow-sm font-black text-base">+${(clientData.pricing_plans as any)?.delivery_fee || 0} del.</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-slate-200 shadow-sm bg-slate-50/50">
+        <Card className="rounded-2xl border-secondary-border shadow-sm bg-secondary/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-500">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-muted-foreground">
               <History className="h-3.5 w-3.5" />
               Último Pago
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-black text-foreground tracking-tight">
+            <div className="text-2xl font-black text-foreground tracking-tighter font-mono">
                 {payments && payments.length > 0 
                     ? `$${payments[0].amount.toFixed(2)}` 
                     : '$0.00'}
             </div>
-            <p className="text-[10px] font-bold text-muted-foreground mt-2 opacity-70">
+            <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter opacity-70">
                 {payments && payments.length > 0 
                     ? new Date(payments[0].created_at).toLocaleDateString()
                     : 'Sin actividad reciente'}

@@ -27,16 +27,22 @@ interface EditTenantFormProps {
     plan_type: string
     plan_expiry_date: string | null
     is_active: boolean
+    is_trial: boolean
+    trial_ends_at: string | null
   }
 }
 
 export function EditTenantForm({ tenant }: EditTenantFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  // Determine the current relevant date to show in the date picker
+  const initialDate = tenant.is_trial ? tenant.trial_ends_at : tenant.plan_expiry_date
+  
   const [formData, setFormData] = useState({
     name: tenant.name,
     plan_type: tenant.plan_type,
-    plan_expiry_date: tenant.plan_expiry_date ? tenant.plan_expiry_date.split('T')[0] : '',
+    plan_expiry_date: initialDate ? initialDate.split('T')[0] : '',
     is_active: tenant.is_active,
   })
 
@@ -154,7 +160,9 @@ export function EditTenantForm({ tenant }: EditTenantFormProps) {
               onChange={(e) => setFormData({ ...formData, plan_expiry_date: e.target.value })}
             />
             <p className="text-xs text-muted-foreground italic">
-              El administrador verá un aviso 4 días antes de esta fecha.
+              {formData.plan_type === 'prueba' 
+                ? 'Para el plan de Prueba, esta fecha controla el fin del trial.' 
+                : 'El administrador verá un aviso 4 días antes de esta fecha.'}
             </p>
           </div>
 

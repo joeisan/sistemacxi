@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { EditTenantForm } from '@/components/super-admin/edit-tenant-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Users, Package, Shield } from 'lucide-react'
+import { Calendar, Users, Package, Shield, Zap } from 'lucide-react'
+import { isTenantExpired, getEffectiveExpiryDate } from '@/lib/utils/tenant-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,11 +37,13 @@ export default async function EditTenantPage({
     .select('*', { count: 'exact', head: true })
     .eq('tenant_id', id)
 
-  const daysUntilExpiry = tenant.plan_expiry_date 
-    ? Math.ceil((new Date(tenant.plan_expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+  const isExpired = isTenantExpired(tenant)
+  const effectiveExpiry = getEffectiveExpiryDate(tenant)
+  
+  const daysUntilExpiry = effectiveExpiry 
+    ? Math.ceil((new Date(effectiveExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : null
 
-  const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0
   const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 7 && daysUntilExpiry >= 0
 
   return (
@@ -59,10 +62,15 @@ export default async function EditTenantPage({
               Plan
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <Badge variant="outline" className="text-xs uppercase font-bold tracking-wider">
+          <CardContent className="p-4 pt-0 flex flex-col gap-2">
+            <Badge variant="outline" className="text-xs uppercase font-bold tracking-wider w-fit">
               {tenant.plan_type || 'Básico'}
             </Badge>
+            {tenant.is_trial && (
+              <Badge variant="destructive" className="text-[9px] font-black uppercase tracking-tighter w-fit h-5 px-1.5 flex items-center gap-1">
+                <Zap className="h-2.5 w-2.5 fill-current" /> Modo Prueba
+              </Badge>
+            )}
           </CardContent>
         </Card>
 
@@ -74,10 +82,10 @@ export default async function EditTenantPage({
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            {tenant.plan_expiry_date ? (
+            {effectiveExpiry ? (
               <div className="flex flex-col gap-1">
                 <span className={`text-sm font-bold ${isExpired ? 'text-destructive' : isExpiringSoon ? 'text-amber-600' : ''}`}>
-                  {new Date(tenant.plan_expiry_date).toLocaleDateString('es', { 
+                  {new Date(effectiveExpiry).toLocaleDateString('es', { 
                     year: 'numeric', month: 'short', day: 'numeric' 
                   })}
                 </span>

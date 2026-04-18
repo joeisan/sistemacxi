@@ -141,7 +141,7 @@ export default async function ClientDashboardPage({
             <p className="text-sm text-muted-foreground mt-1">
               Paquetes activos en tránsito.
             </p>
-            <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
+            <Button size="sm" variant="outline" className="mt-4 w-full shadow-sm hover:bg-primary/5 hover:text-primary border-primary/20 font-bold" asChild>
               <Link href="/dashboard/paquetes">
                 Ver todos <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

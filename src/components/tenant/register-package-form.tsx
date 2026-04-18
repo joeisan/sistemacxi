@@ -27,7 +27,7 @@ interface Courier {
   name: string
 }
 
-export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tenantId: string, clients: Client[], couriers?: Courier[] }) {
+export function RegisterPackageForm({ tenantId, clients, couriers = [], isReadOnly }: { tenantId: string, clients: Client[], couriers?: Courier[], isReadOnly?: boolean }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -102,6 +102,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
             placeholder="Buscar por nombre o código..."
             className="pl-9"
             value={searchTerm}
+            disabled={isReadOnly}
             onChange={(e) => {
                 setSearchTerm(e.target.value)
                 if (selectedClient) setSelectedClient(null)
@@ -150,6 +151,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
             placeholder="Ej: 1Z99..."
             required
             value={formData.trackingNumber}
+            disabled={isReadOnly}
             onChange={(e) => setFormData({ ...formData, trackingNumber: e.target.value })}
           />
         </div>
@@ -158,6 +160,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
           <Select 
             value={formData.courierName} 
             onValueChange={(v) => v && setFormData({ ...formData, courierName: v })}
+            disabled={isReadOnly}
           >
             <SelectTrigger id="courier">
               <SelectValue placeholder="Seleccionar courier" />
@@ -180,6 +183,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
             <Input
               placeholder="Nombre del courier..."
               className="mt-2"
+              disabled={isReadOnly}
               onChange={(e) => setFormData({ ...formData, courierName: e.target.value })}
             />
           )}
@@ -192,6 +196,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
             step="0.1"
             placeholder="0.0"
             value={formData.weightLb}
+            disabled={isReadOnly}
             onChange={(e) => setFormData({ ...formData, weightLb: e.target.value })}
           />
         </div>
@@ -201,6 +206,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
             id="description"
             placeholder="Ej: Ropa, Electrónica..."
             value={formData.description}
+            disabled={isReadOnly}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
         </div>
@@ -215,7 +221,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [] }: { tena
         >
             Cancelar
         </Button>
-        <Button type="submit" className="flex-1" disabled={isLoading || !selectedClient}>
+        <Button type="submit" className="flex-1" disabled={isLoading || !selectedClient || isReadOnly}>
           {isLoading ? 'Registrando...' : 'Registrar Paquete'}
         </Button>
       </div>

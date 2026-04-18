@@ -21,7 +21,7 @@ export default async function AdminClientesPage({
 
   if (!tenantData) return notFound()
 
-  const isExpired = isTenantExpired(tenantData)
+  const isReadOnly = !tenantData.is_active || isTenantExpired(tenantData)
   const supabase = createAdminClient()
 
   // Fetch clients for this tenant
@@ -132,7 +132,7 @@ export default async function AdminClientesPage({
             <p className="text-xs font-medium text-muted-foreground">Listado maestro de suscriptores y códigos de casillero.</p>
           </div>
         </div>
-        {!isExpired && (
+        {!isReadOnly && (
           <CreateClientDialog tenantId={tenantData.id} availablePlans={plans || []} />
         )}
       </div>
@@ -155,13 +155,13 @@ export default async function AdminClientesPage({
         }}
         actions={(c) => (
           <div className="flex items-center gap-2">
-            {!isExpired ? (
+            {!isReadOnly ? (
               <>
                 <EditClientDialog client={c} availablePlans={plans || []} />
                 <DeleteClientButton clientId={c.id} clientName={c.full_name} tenantSubdomain={tenant} />
               </>
             ) : (
-              <Badge variant="outline" className="text-[10px] font-black uppercase text-muted-foreground">Solo Lectura</Badge>
+              <Badge variant="outline" className="text-[10px] font-black uppercase text-muted-foreground italic">Lectura</Badge>
             )}
           </div>
         )}
