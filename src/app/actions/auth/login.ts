@@ -47,16 +47,18 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
 
   // 3. Determine redirect based on role
   const host = (await headers()).get('host') || ''
-  const rootDomains = ['localhost:3000', 'sistemacxi.vercel.app']
   
-  // Check if we are already on a subdomain
-  let isOnSubdomain = false
-  for (const root of rootDomains) {
-    if (host.endsWith(`.${root.replace(/:\d+$/, '')}`)) {
-      isOnSubdomain = true
-      break
-    }
+  // Calculate root domain dynamically
+  const parts = host.split('.')
+  let currentRoot = host
+  if (parts.length > 2 && !host.includes('localhost')) {
+    currentRoot = parts.slice(-2).join('.')
+  } else if (host.includes('localhost')) {
+    currentRoot = 'localhost:3000'
   }
+
+  // Check if we are already on a subdomain
+  const isOnSubdomain = parts.length > 2 || (host.includes('localhost') && host.split('.').length > 1 && !host.startsWith('localhost'))
 
   let redirectPath = '/'
 

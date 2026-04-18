@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Plus, ExternalLink, Edit } from 'lucide-react'
+import { headers } from 'next/headers'
 import {
   Table,
   TableBody,
@@ -20,6 +21,17 @@ export const dynamic = 'force-dynamic'
 
 export default async function SuperAdminTenantsPage() {
   const supabase = createAdminClient()
+  const host = (await headers()).get('host') || ''
+  
+  // Determine root domain (e.g., sistemacxi.vercel.app or localhost:3000)
+  // If we are on a subdomain currently, we need to strip it.
+  const parts = host.split('.')
+  let rootDomain = host
+  if (parts.length > 2 && !host.includes('localhost')) {
+    rootDomain = parts.slice(-2).join('.')
+  } else if (host.includes('localhost')) {
+    rootDomain = 'localhost:3000'
+  }
 
   const { data: tenants, error } = await supabase
     .from('tenants')
@@ -52,7 +64,7 @@ export default async function SuperAdminTenantsPage() {
         </Link>
       </div>
 
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+      <div className="border rounded-xl bg-card shadow-sm">
         <div className="responsive-table-container">
             <Table>
             <TableHeader>
@@ -66,7 +78,11 @@ export default async function SuperAdminTenantsPage() {
             </TableHeader>
             <TableBody>
                 {tenants && tenants.length > 0 ? (
-                tenants.map((tenant: any) => (
+                tenants.map((tenant: any) => {
+                    const protocol = host.includes('localhost') ? 'http' : 'https'
+                    const companyUrl = `${protocol}://${tenant.subdomain}.${rootDomain}`
+                    
+                    return (
                     <TableRow key={tenant.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell>
                         <div className="flex flex-col min-w-[200px]">
@@ -100,7 +116,7 @@ export default async function SuperAdminTenantsPage() {
                               <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">SOLICITUD UPGRADE</Badge>
                             )}
                           </div>
-                          <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1 rounded w-fit">{tenant.subdomain}.sistemacxi.vercel.app</span>
+                          <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1 rounded w-fit italic">{tenant.subdomain}.{rootDomain}</span>
                         </div>
                     </TableCell>
                     <TableCell>
@@ -156,7 +172,7 @@ export default async function SuperAdminTenantsPage() {
                         <DeleteTenantButton tenantId={tenant.id} tenantName={tenant.name} />
                         
                         <a 
-                            href={`https://${tenant.subdomain}.sistemacxi.vercel.app`} 
+                            href={companyUrl} 
                             target="_blank"
                             title="Ir al sitio"
                             rel="noopener noreferrer"
@@ -168,7 +184,7 @@ export default async function SuperAdminTenantsPage() {
                         </div>
                     </TableCell>
                     </TableRow>
-                ))
+                )})
                 ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground italic text-xs">

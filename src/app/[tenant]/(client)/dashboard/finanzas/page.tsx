@@ -137,7 +137,7 @@ export default async function ClientFinanzasPage({
                 <Receipt className="h-5 w-5 text-primary" />
                 Cargos por Paquetes
             </h2>
-            <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+            <div className="border rounded-xl bg-card shadow-sm">
                 <div className="responsive-table-container">
                     <Table>
                         <TableHeader>
@@ -181,7 +181,7 @@ export default async function ClientFinanzasPage({
                 <DollarSign className="h-5 w-5 text-green-600" />
                 Historial de Pagos
             </h2>
-            <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+            <div className="border rounded-xl bg-card shadow-sm">
                 <div className="responsive-table-container">
                     <Table>
                         <TableHeader>

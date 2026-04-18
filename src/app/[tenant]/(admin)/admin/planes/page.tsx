@@ -88,7 +88,7 @@ export default async function AdminPlanesPage({
         </Card>
       </div>
 
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+      <div className="border rounded-xl bg-card shadow-sm">
         <div className="responsive-table-container">
             <Table>
             <TableHeader>

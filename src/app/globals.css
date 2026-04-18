@@ -156,14 +156,14 @@ html {
   max-width: 100%;
 }
 
-/* Hide scrollbar but allow scrolling if preferred, or just make it thin */
+/* Ensure thin scrollbar for visibility without being intrusive */
 .responsive-table-container::-webkit-scrollbar {
-  height: 4px;
+  height: 6px;
 }
 .responsive-table-container::-webkit-scrollbar-thumb {
   background: var(--primary);
   border-radius: 10px;
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 /* Fix for Grid/Flex layouts that prevent children from shrinking */
@@ -173,12 +173,9 @@ main {
 
 @media (max-width: 768px) {
   .responsive-table-container {
+    /* Remove negative margins and width hacks that break overflow-hidden parents */
     @apply border-t border-b;
-    margin-right: -1rem;
-    margin-left: -1rem;
-    padding-right: 1rem;
-    padding-left: 1rem;
-    width: calc(100% + 2rem);
+    width: 100%;
     background: linear-gradient(to right, white 30%, rgba(255, 255, 255, 0)),
                 linear-gradient(to right, rgba(255, 255, 255, 0), white 70%) 100% 0,
                 radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)),

@@ -55,7 +55,7 @@ export default async function SuperAdminUsuariosPage() {
         <p className="text-muted-foreground">Todos los administradores y usuarios registrados en la plataforma.</p>
       </div>
 
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+      <div className="border rounded-xl bg-card shadow-sm">
         <div className="responsive-table-container">
             <Table>
             <TableHeader>

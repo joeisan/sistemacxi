@@ -23,6 +23,17 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false)
   const router = useRouter()
 
+  // Get root domain dynamically
+  const getRootDomain = () => {
+    if (typeof window === 'undefined') return 'sistemacxi.vercel.app'
+    const host = window.location.host
+    if (host.includes('localhost')) return 'localhost:3000'
+    const parts = host.split('.')
+    if (parts.length > 2) return parts.slice(-2).join('.')
+    return host
+  }
+  const rootDomain = getRootDomain()
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -61,11 +72,11 @@ export default function RegisterPage() {
                <Globe2 className="w-3 h-3" /> Tu dirección de acceso:
              </p>
              <p className="font-mono text-sm font-bold text-primary truncate">
-               {formData.subdomain}.sistemacxi.vercel.app
+               {formData.subdomain}.{rootDomain}
              </p>
           </div>
           <a 
-            href={`https://${formData.subdomain}.sistemacxi.vercel.app`}
+            href={`${window.location.protocol}//${formData.subdomain}.${rootDomain}`}
             className="block"
           >
             <Button className="w-full h-12 font-bold text-lg rounded-full">
@@ -155,7 +166,7 @@ export default function RegisterPage() {
                         className="h-11 rounded-r-none border-r-0"
                       />
                       <div className="h-11 px-3 border rounded-r-md bg-muted flex items-center text-xs font-bold text-muted-foreground whitespace-nowrap">
-                        .sistemacxi.vercel.app
+                        .{rootDomain}
                       </div>
                     </div>
                   </div>
