@@ -108,7 +108,6 @@ export function ShareLinkCard({ subdomain }: ShareLinkCardProps) {
               </Button>
             </div>
           </div>
-        </div>
         
         <p className="text-[10px] text-muted-foreground mt-4 text-center italic opacity-70">
             * El enlace de subdominio requiere configuración de DNS para dominios personalizados.
