@@ -1,17 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound, redirect } from 'next/navigation'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from "@/components/ui/badge"
-import { DollarSign, Wallet, History, AlertCircle } from 'lucide-react'
+import { DollarSign, Wallet, History, AlertCircle, Receipt, CreditCard } from 'lucide-react'
+import { DataTableResponsive, ColumnDef } from '@/components/ui/data-table-responsive'
 
 export default async function ClientFinanzasPage({
   params,
@@ -59,193 +52,212 @@ export default async function ClientFinanzasPage({
 
   const totalPaid = payments?.reduce((acc, pay) => acc + (pay.amount || 0), 0) || 0
 
+  const chargeColumns: ColumnDef<any>[] = [
+    {
+      header: 'Tracking',
+      render: (p) => (
+        <span className="font-mono text-[11px] font-bold bg-muted px-2 py-0.5 rounded border border-border/50 text-foreground">
+          {p.tracking_number}
+        </span>
+      ),
+      priority: true
+    },
+    {
+      header: 'Peso',
+      render: (p) => <span className="text-xs font-medium text-muted-foreground">{p.weight_lb} lb</span>,
+      className: 'text-center'
+    },
+    {
+      header: 'Total',
+      render: (p) => (
+        <span className="font-mono font-black text-xs text-foreground bg-primary/5 px-2 py-1 rounded-lg">
+          ${(p.total_amount || 0).toFixed(2)}
+        </span>
+      ),
+      className: 'text-right'
+    },
+    {
+      header: 'Estado',
+      render: (p) => (
+        <Badge variant={p.payment_status === 'paid' ? 'default' : 'outline'} 
+          className={`text-[9px] font-black uppercase tracking-tighter px-2 h-5 border-none ${p.payment_status === 'paid' ? 'bg-green-500/10 text-green-700' : 'bg-amber-500/10 text-amber-700'}`}>
+          {p.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
+        </Badge>
+      ),
+      className: 'text-right'
+    }
+  ]
+
+  const paymentColumns: ColumnDef<any>[] = [
+    {
+      header: 'Fecha',
+      render: (p) => (
+        <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-80">
+          {new Date(p.created_at).toLocaleDateString()}
+        </span>
+      ),
+      priority: true
+    },
+    {
+      header: 'Método',
+      render: (p) => (
+        <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-tighter h-5 bg-slate-100 text-slate-700">
+          {p.method}
+        </Badge>
+      ),
+      priority: true
+    },
+    {
+      header: 'Monto',
+      render: (p) => (
+        <span className="font-mono font-black text-xs text-green-700 bg-green-500/10 px-2 py-1 rounded-lg">
+          ${p.amount.toFixed(2)}
+        </span>
+      ),
+      className: 'text-right'
+    }
+  ]
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Estado de Cuenta</h1>
-        <p className="text-muted-foreground">Revisa tus facturas, pagos y saldo pendiente con {tenantData.name}.</p>
+    <div className="flex flex-col gap-8 animate-in fade-in duration-700">
+      <div className="flex justify-between items-center bg-card p-6 rounded-2xl border shadow-sm border-primary/10">
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex h-12 w-12 rounded-2xl bg-indigo-500/10 items-center justify-center text-indigo-600 shadow-inner">
+            <CreditCard className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <h1 className="text-2xl font-black tracking-tighter text-foreground">Estado de Cuenta</h1>
+            <p className="text-xs font-medium text-muted-foreground">Gestión de facturación y movimientos financieros.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-primary/5 border-primary/20 shadow-sm">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="rounded-2xl border-primary/10 bg-indigo-500/[0.03] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+              <Wallet className="h-3.5 w-3.5" />
               Saldo Pendiente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-primary font-mono">${pendingBalance.toFixed(2)}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">Por pagar</p>
+            <div className={`text-3xl font-black font-mono tracking-tighter ${pendingBalance > 0 ? 'text-amber-600' : 'text-primary'}`}>
+              ${pendingBalance.toFixed(2)}
+            </div>
+            <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter opacity-70">Total por liquidar</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-500/5 border-green-500/20 shadow-sm">
+        <Card className="rounded-2xl border-green-500/10 bg-green-500/[0.03] shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-green-700">
+              <DollarSign className="h-3.5 w-3.5" />
               Total Pagado
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-green-700 dark:text-green-400 font-mono">${totalPaid.toFixed(2)}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-wider">Historial total</p>
+            <div className="text-3xl font-black text-green-700 font-mono tracking-tighter">${totalPaid.toFixed(2)}</div>
+            <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter opacity-70">Historial transaccional</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="rounded-2xl border-slate-200 shadow-sm bg-slate-50/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-              Mi Plan
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-500">
+              <Receipt className="h-3.5 w-3.5" />
+              Tarifa Vigente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold truncate">{(clientData.pricing_plans as any)?.name || 'Estándar'}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 font-mono">
-              ${(clientData.pricing_plans as any)?.cost_per_lb || 0}/lb + ${(clientData.pricing_plans as any)?.delivery_fee || 0} del.
+            <div className="text-lg font-black text-foreground tracking-tight underline decoration-indigo-500/30 decoration-2 underline-offset-4">
+              {(clientData.pricing_plans as any)?.name || 'Estándar'}
+            </div>
+            <p className="text-[10px] font-bold text-muted-foreground mt-2 font-mono flex gap-2">
+              <span className="bg-white border rounded px-1.5">${(clientData.pricing_plans as any)?.cost_per_lb || 0}/lb</span>
+              <span className="bg-white border rounded px-1.5">+${(clientData.pricing_plans as any)?.delivery_fee || 0} del.</span>
             </p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
+        <Card className="rounded-2xl border-slate-200 shadow-sm bg-slate-50/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <History className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-500">
+              <History className="h-3.5 w-3.5" />
               Último Pago
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">
+            <div className="text-lg font-black text-foreground tracking-tight">
                 {payments && payments.length > 0 
                     ? `$${payments[0].amount.toFixed(2)}` 
                     : '$0.00'}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1 truncate">
+            <p className="text-[10px] font-bold text-muted-foreground mt-2 opacity-70">
                 {payments && payments.length > 0 
                     ? new Date(payments[0].created_at).toLocaleDateString()
-                    : 'Sin pagos'}
+                    : 'Sin actividad reciente'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-          {/* Recent Packages / Invoices */}
+      <div className="grid gap-8 lg:grid-cols-2">
           <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 px-1">
-                <Receipt className="h-5 w-5 text-primary" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-3 ml-1">
+                <Receipt className="h-4 w-4 text-indigo-500" />
                 Cargos por Paquetes
             </h2>
-            <div className="border rounded-xl bg-card shadow-sm">
-                <div className="responsive-table-container">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-muted/50">
-                                <TableHead className="whitespace-nowrap">Tracking</TableHead>
-                                <TableHead className="text-center">Peso</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right">Estado</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {packages && packages.length > 0 ? (
-                                packages.filter(p => (p.total_amount || 0) > 0).map((pkg) => (
-                                    <TableRow key={pkg.id}>
-                                        <TableCell className="font-mono text-xs whitespace-nowrap">{pkg.tracking_number}</TableCell>
-                                        <TableCell className="text-center text-xs whitespace-nowrap">{pkg.weight_lb} lb</TableCell>
-                                        <TableCell className="text-right font-bold text-xs whitespace-nowrap">${(pkg.total_amount || 0).toFixed(2)}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge variant={pkg.payment_status === 'paid' ? 'default' : 'outline'} className={`text-[10px] px-2 py-0 h-5 ${pkg.payment_status === 'paid' ? 'bg-green-500 hover:bg-green-600' : 'border-amber-500 text-amber-600'}`}>
-                                                {pkg.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground italic text-xs">
-                                        No hay cargos registrados.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+            <DataTableResponsive
+              data={packages?.filter(p => (p.total_amount || 0) > 0) || []}
+              columns={chargeColumns}
+              rowId={(p) => p.id}
+              mobileConfig={{
+                title: (p) => p.tracking_number,
+                subtitle: (p) => `$${(p.total_amount || 0).toFixed(2)}`,
+                badge: (p) => (
+                  <Badge variant={p.payment_status === 'paid' ? 'default' : 'outline'} 
+                    className={`text-[8px] h-4 ${p.payment_status === 'paid' ? 'bg-green-500/10 text-green-700' : 'bg-amber-500/10 text-amber-700'} border-none uppercase`}>
+                    {p.payment_status === 'paid' ? 'OK' : 'Pte'}
+                  </Badge>
+                )
+              }}
+              emptyMessage="No hay cargos registrados."
+            />
           </div>
 
-          {/* Payment History */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 px-1">
-                <DollarSign className="h-5 w-5 text-green-600" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-3 ml-1">
+                <DollarSign className="h-4 w-4 text-green-600" />
                 Historial de Pagos
             </h2>
-            <div className="border rounded-xl bg-card shadow-sm">
-                <div className="responsive-table-container">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-muted/50">
-                                <TableHead className="whitespace-nowrap">Fecha</TableHead>
-                                <TableHead className="whitespace-nowrap">Método</TableHead>
-                                <TableHead className="text-right">Monto</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {payments && payments.length > 0 ? (
-                                payments.map((pay) => (
-                                    <TableRow key={pay.id}>
-                                        <TableCell className="text-xs whitespace-nowrap">{new Date(pay.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="capitalize text-xs whitespace-nowrap">
-                                            <Badge variant="secondary" className="text-[10px] font-normal h-5">{pay.method}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold text-green-600 text-xs whitespace-nowrap">${pay.amount.toFixed(2)}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground italic text-xs">
-                                        No se han registrado pagos todavía.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+            <DataTableResponsive
+              data={payments || []}
+              columns={paymentColumns}
+              rowId={(p) => p.id}
+              mobileConfig={{
+                title: (p) => p.method,
+                subtitle: (p) => `$${p.amount.toFixed(2)}`,
+                badge: (p) => (
+                  <span className="text-[10px] font-bold text-muted-foreground">
+                    {new Date(p.created_at).toLocaleDateString()}
+                  </span>
+                )
+              }}
+              emptyMessage="No se han registrado pagos."
+            />
           </div>
       </div>
 
       {pendingBalance > 0 && (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">
-                  Atención: Tienes un saldo pendiente de <strong>${pendingBalance.toFixed(2)}</strong>. Por favor, realiza tu pago para evitar retrasos en tus entregas.
+          <div className="flex items-center gap-4 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-700">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-bold tracking-tight">
+                  Atención: Tienes un saldo pendiente de <span className="underline decoration-2 underline-offset-2 decoration-amber-500/50">${pendingBalance.toFixed(2)}</span>. Por favor, regulariza tu cuenta para habilitar el despacho de tus pedidos.
               </p>
           </div>
       )}
     </div>
-  )
-}
-
-function Receipt(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
-      <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-      <path d="M12 17.5V18" />
-      <path d="M12 7V6.5" />
-    </svg>
   )
 }

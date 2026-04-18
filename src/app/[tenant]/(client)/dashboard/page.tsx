@@ -118,7 +118,7 @@ export default async function ClientDashboardPage({
           </CardHeader>
           <CardContent>
             <div className="hero-number text-primary">${pendingBalance.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Paquetes por pagar.
             </p>
             <Button size="sm" className="mt-4 w-full" asChild>
@@ -138,7 +138,7 @@ export default async function ClientDashboardPage({
           </CardHeader>
           <CardContent>
             <div className="hero-number text-foreground">{activePackages}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Paquetes activos en tránsito.
             </p>
             <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
@@ -158,7 +158,7 @@ export default async function ClientDashboardPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-black font-mono">17TRACK</div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Servicio de rastreo externo.
             </p>
             <Button size="sm" variant="ghost" className="mt-4 w-full" asChild>

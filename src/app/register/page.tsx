@@ -28,6 +28,10 @@ export default function RegisterPage() {
     if (typeof window === 'undefined') return 'sistemacxi.vercel.app'
     const host = window.location.host
     if (host.includes('localhost')) return 'localhost:3000'
+    
+    // Specifically handle the sistemacxi.vercel.app base domain
+    if (host.includes('sistemacxi.vercel.app')) return 'sistemacxi.vercel.app'
+    
     const parts = host.split('.')
     if (parts.length > 2) return parts.slice(-2).join('.')
     return host

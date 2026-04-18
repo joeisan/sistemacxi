@@ -39,12 +39,16 @@ export async function updateTenantSettings(data: TenantSettingsUpdate) {
   return { success: true }
 }
 
-export async function updateTenantBranding(tenantId: string, name: string) {
+export async function updateTenantBranding(tenantId: string, name: string, primaryColor?: string, secondaryColor?: string) {
   const adminClient = createAdminClient()
+
+  const updates: any = { name }
+  if (primaryColor) updates.primary_color = primaryColor
+  if (secondaryColor) updates.secondary_color = secondaryColor
 
   const { error } = await adminClient
     .from('tenants')
-    .update({ name })
+    .update(updates)
     .eq('id', tenantId)
 
   if (error) {

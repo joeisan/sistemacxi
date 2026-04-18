@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter, Outfit } from 'next/font/google'
+import { Open_Sans, Outfit } from 'next/font/google'
 import { ClientProviders } from '@/components/providers/client-providers'
 import './globals.css'
 
-const inter = Inter({
+const openSans = Open_Sans({
   variable: '--font-sans',
   subsets: ['latin'],
 })
@@ -27,7 +27,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${inter.variable} ${outfit.variable} h-full antialiased`}
+      className={`${openSans.variable} ${outfit.variable} h-full antialiased`}
     >
       <head />
       <body suppressHydrationWarning className="font-sans min-h-full flex flex-col items-stretch">

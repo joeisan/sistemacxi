@@ -126,18 +126,19 @@ export default async function ClientDashboardLayout({
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
       {/* Sidebar Desktop */}
-      <aside className="hidden w-64 flex-col border-r bg-background md:flex">
+      <aside className="hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex sticky top-0 h-screen overflow-y-auto">
         <div className="flex flex-col h-20 justify-center border-b px-6 bg-primary/5">
             {tenantData.logo_url ? (
-              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain mb-1" />
+              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain mb-1 transition-transform hover:scale-105" />
             ) : (
-              <div className="text-[11px] font-black uppercase tracking-widest text-primary/70 mb-0.5">{tenantData.name}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{tenantData.name}</div>
             )}
-            <div className="font-bold text-base text-foreground truncate">{displayName}</div>
+            <div className="font-bold text-base text-foreground truncate tracking-tight">{displayName}</div>
         </div>
         
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto">
-          <nav className="space-y-2 px-4 py-4">
+        <div className="flex-1 flex flex-col justify-between overflow-y-auto py-6">
+          <nav className="space-y-1 px-3">
+            <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Servicios</div>
             {navItems.map((item) => {
                const Icon = item.iconName === 'Home' ? Home :                           
                             item.iconName === 'MapPin' ? MapPin : 
@@ -147,25 +148,27 @@ export default async function ClientDashboardLayout({
                 <Link 
                   key={item.href}
                   href={item.href} 
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-foreground transition-all hover:text-primary hover:bg-muted font-bold text-sm"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-all duration-300 hover:text-primary hover:bg-primary/5 group"
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   {item.label}
                 </Link>
                )
             })}
           </nav>
 
-          {planCard}
+          <div className="px-3">
+            {planCard}
+          </div>
         </div>
 
-        <div className="border-t p-4 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+        <div className="border-t p-4 flex flex-col gap-3 bg-primary/5">
+            <div className="flex items-center justify-between px-2">
                 <FontSizeSelector />
                 <ThemeToggle />
             </div>
-           <Link href={`/${tenant}/dashboard/perfil`} className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
-              <User className="h-4 w-4" />
+           <Link href={`/${tenant}/dashboard/perfil`} className="flex items-center gap-2 w-full p-2 rounded-xl hover:bg-primary/5 text-xs font-bold text-muted-foreground hover:text-primary transition-all group">
+              <User className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
               Mi Perfil
            </Link>
         </div>

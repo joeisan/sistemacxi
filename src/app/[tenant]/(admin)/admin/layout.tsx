@@ -139,19 +139,20 @@ export default async function AdminDashboardLayout({
       )}
 
       {/* Sidebar Desktop */}
-      <aside className={`hidden w-64 flex-col border-r bg-background md:flex ${!tenantData.is_active ? 'pt-10' : ''}`}>
+      <aside className={`hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex sticky top-0 h-screen overflow-y-auto ${!tenantData.is_active ? 'pt-10' : ''}`}>
         <div className="flex h-16 items-center border-b px-6 bg-primary/5">
-          <Link href={`/${tenant}/admin`} className="flex items-center gap-2 font-bold text-lg">
+          <Link href={`/${tenant}/admin`} className="flex items-center gap-2 font-bold text-lg tracking-tight group">
             {tenantData.logo_url ? (
-              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain" />
+              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain transition-transform group-hover:scale-105" />
             ) : (
-              <span className="truncate">Admin - {tenantData.name}</span>
+              <span className="truncate text-foreground">Admin <span className="text-primary">{tenantData.name}</span></span>
             )}
           </Link>
         </div>
         
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto">
-            <nav className="space-y-1.5 px-3 py-4">
+        <div className="flex-1 flex flex-col justify-between overflow-y-auto py-6">
+            <nav className="space-y-1 px-3">
+            <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Gestión</div>
             {navItems.map((item) => {
                 const Icon = item.iconName === 'LayoutDashboard' ? LayoutDashboard : 
                             item.iconName === 'Users' ? Users : 
@@ -161,29 +162,31 @@ export default async function AdminDashboardLayout({
                 <Link 
                     key={item.href}
                     href={item.href} 
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-primary hover:bg-muted"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-muted-foreground transition-all duration-300 hover:text-primary hover:bg-primary/5 group"
                 >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4 group-hover:text-primary transition-colors" />
                     {item.label}
                 </Link>
                 )
             })}
             </nav>
 
-            {subscriptionCard}
+            <div className="px-3">
+              {subscriptionCard}
+            </div>
         </div>
 
-        <div className="border-t p-4 flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-2">
+        <div className="border-t p-4 flex flex-col gap-3 bg-primary/5">
+            <div className="flex items-center justify-between gap-2 px-2">
                 <FontSizeSelector />
                 <ThemeToggle />
             </div>
-            <Link href={`/${tenant}/admin/configuracion/perfil`} className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-              <User className="h-4 w-4" />
+            <Link href={`/${tenant}/admin/configuracion/perfil`} className="flex items-center gap-2 w-full p-2 rounded-xl hover:bg-primary/5 text-xs font-bold text-muted-foreground hover:text-primary transition-all group">
+              <User className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
               Perfil y Marca
             </Link>
-           <Link href={`/${tenant}/admin/configuracion`} className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-             <Settings className="h-4 w-4" />
+           <Link href={`/${tenant}/admin/configuracion`} className="flex items-center gap-2 w-full p-2 rounded-xl hover:bg-primary/5 text-xs font-bold text-muted-foreground hover:text-primary transition-all group">
+             <Settings className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
              Configuración
            </Link>
         </div>

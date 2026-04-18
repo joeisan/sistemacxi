@@ -102,7 +102,7 @@ export default async function AdminDashboardPage({
           </CardHeader>
           <CardContent className="p-5 pt-0">
             <div className="hero-number text-blue-500">{clientsCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registrados</p>
+            <p className="text-sm text-muted-foreground mt-1">Registrados</p>
           </CardContent>
         </Card>
 
@@ -117,7 +117,7 @@ export default async function AdminDashboardPage({
           </CardHeader>
           <CardContent className="p-5 pt-0">
             <div className="hero-number text-emerald-500">{packagesCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Histórico total</p>
+            <p className="text-sm text-muted-foreground mt-1">Histórico total</p>
           </CardContent>
         </Card>
 
@@ -132,7 +132,7 @@ export default async function AdminDashboardPage({
           </CardHeader>
           <CardContent className="p-5 pt-0">
             <div className="hero-number text-amber-500">{activePackagesCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Pendientes de entrega</p>
+            <p className="text-sm text-muted-foreground mt-1">Pendientes de entrega</p>
           </CardContent>
         </Card>
 
@@ -147,7 +147,7 @@ export default async function AdminDashboardPage({
           </CardHeader>
           <CardContent className="p-5 pt-0">
             <div className="hero-number text-rose-500">0</div>
-            <p className="text-xs text-muted-foreground mt-1">Sin incidencias</p>
+            <p className="text-sm text-muted-foreground mt-1">Sin incidencias</p>
           </CardContent>
         </Card>
       </div>
@@ -172,7 +172,7 @@ export default async function AdminDashboardPage({
                       </div>
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">{client.full_name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-sm text-muted-foreground">
                           {new Date(client.created_at).toLocaleDateString()}
                         </span>
                       </div>

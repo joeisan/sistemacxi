@@ -51,7 +51,10 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
   // Calculate root domain dynamically
   const parts = host.split('.')
   let currentRoot = host
-  if (parts.length > 2 && !host.includes('localhost')) {
+  
+  if (host.includes('sistemacxi.vercel.app')) {
+    currentRoot = 'sistemacxi.vercel.app'
+  } else if (parts.length > 2 && !host.includes('localhost')) {
     currentRoot = parts.slice(-2).join('.')
   } else if (host.includes('localhost')) {
     currentRoot = 'localhost:3000'

@@ -4,18 +4,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge'
-import { Plus, Trash2, Pencil, CheckCircle2 } from 'lucide-react'
+import { Plus, Trash2, Pencil, CheckCircle2, MapPin, Phone, Building2 } from 'lucide-react'
 import { upsertTenantAddress, deleteTenantAddress } from '@/app/actions/admin/manage-addresses'
 import { toast } from 'sonner'
+import { DataTableResponsive, ColumnDef } from '@/components/ui/data-table-responsive'
 
 interface Address {
   id: string
@@ -70,10 +63,7 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
 
       if (result.success) {
         toast.success(formData.id ? 'Dirección actualizada' : 'Dirección añadida')
-        // In a real app we'd re-fetch or use the result, 
-        // for now we rely on revalidatePath and the user can refresh or we can optimistically update
         resetForm()
-        // Optimistic refresh (minimal)
         window.location.reload() 
       } else {
         toast.error('Error', { description: result.error })
@@ -99,143 +89,123 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
     }
   }
 
+  const columns: ColumnDef<Address>[] = [
+    {
+      header: 'Sede',
+      render: (a) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+            {a.label}
+            {a.is_default && <CheckCircle2 className="h-3 w-3 text-primary" />}
+          </span>
+          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter flex items-center gap-1">
+            <Phone className="h-2.5 w-2.5" /> {a.phone}
+          </span>
+        </div>
+      ),
+      priority: true
+    },
+    {
+      header: 'Dirección Completa',
+      render: (a) => (
+        <div className="flex flex-col text-xs font-medium">
+          <span className="text-foreground">{a.address_line_1}</span>
+          <span className="text-muted-foreground opacity-70">{a.city_state_zip}, {a.country}</span>
+        </div>
+      ),
+      priority: true
+    },
+    {
+      header: 'Estado',
+      render: (a) => (
+        <Badge variant={a.is_default ? "default" : "outline"} className={`text-[9px] font-black uppercase h-5 border-none ${a.is_default ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          {a.is_default ? "Principal" : "Opcional"}
+        </Badge>
+      ),
+      className: 'text-center'
+    }
+  ]
+
   return (
-    <div className="space-y-8">
-      <form onSubmit={handleSave} className="grid gap-4 rounded-lg border p-4 bg-muted/20">
-        <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                {isEditing ? 'Editar Sede' : 'Añadir Nueva Sede'}
-            </h3>
+    <div className="flex flex-col gap-10 animate-in fade-in duration-700">
+      <form onSubmit={handleSave} className="bg-card rounded-2xl border border-primary/10 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-primary/5 bg-primary/[0.02] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
+                  {isEditing ? 'Editar Dirección' : 'Nueva Sede Operativa'}
+              </h3>
+            </div>
             {isEditing && (
-                <Button type="button" variant="ghost" size="sm" onClick={resetForm}>Cancelar</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={resetForm} className="text-[10px] h-8 font-black uppercase px-3">
+                  Cerrar Edición
+                </Button>
             )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-                <Label htmlFor="label">Nombre de la Sede (ej: Florida Central)</Label>
-                <Input 
-                    id="label" 
-                    value={formData.label} 
-                    onChange={e => setFormData({...formData, label: e.target.value})}
-                    placeholder="Miami Hub" 
-                    required 
-                />
+                <Label htmlFor="label" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Nombre de la Sede</Label>
+                <Input id="label" value={formData.label} onChange={e => setFormData({...formData, label: e.target.value})} 
+                  placeholder="Ej: Almacén Principal Miami" required className="bg-muted/30 border-none font-bold placeholder:font-normal placeholder:opacity-50" />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono de la Sede</Label>
-                <Input 
-                    id="phone" 
-                    value={formData.phone} 
-                    onChange={e => setFormData({...formData, phone: e.target.value})}
-                    placeholder="+1 ..." 
-                    required 
-                />
+                <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Teléfono Contacto</Label>
+                <Input id="phone" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} 
+                  placeholder="+1 (000) 000-0000" required className="bg-muted/30 border-none font-bold" />
             </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="address">Dirección (Línea 1)</Label>
-                <Input 
-                    id="address" 
-                    value={formData.address_line_1} 
-                    onChange={e => setFormData({...formData, address_line_1: e.target.value})}
-                    placeholder="6315 NW 99TH AVE" 
-                    required 
-                />
+            <div className="space-y-2 md:col-span-2 lg:col-span-2">
+                <Label htmlFor="address" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Dirección Física (Línea 1)</Label>
+                <Input id="address" value={formData.address_line_1} onChange={e => setFormData({...formData, address_line_1: e.target.value})} 
+                  placeholder="Ej: 8200 NW 12TH ST" required className="bg-muted/30 border-none font-bold" />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="city">Ciudad, Estado y ZIP</Label>
-                <Input 
-                    id="city" 
-                    value={formData.city_state_zip} 
-                    onChange={e => setFormData({...formData, city_state_zip: e.target.value})}
-                    placeholder="DORAL, FL 33178" 
-                    required 
-                />
+                <Label htmlFor="city" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-70">Ciudad, Estado y ZIP</Label>
+                <Input id="city" value={formData.city_state_zip} onChange={e => setFormData({...formData, city_state_zip: e.target.value})} 
+                  placeholder="Ej: MIAMI, FL 33126" required className="bg-muted/30 border-none font-bold" />
             </div>
-            <div className="flex items-end gap-4">
-                <div className="flex items-center space-x-2 h-10">
-                    <input 
-                        type="checkbox" 
-                        id="default" 
-                        checked={formData.is_default} 
-                        onChange={e => setFormData({...formData, is_default: e.target.checked})}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <Label htmlFor="default">Sede Principal</Label>
+            <div className="flex items-center gap-6 md:col-span-2">
+                <div className="flex items-center gap-2 pr-6 border-r border-dotted">
+                    <input type="checkbox" id="default" checked={formData.is_default} onChange={e => setFormData({...formData, is_default: e.target.checked})}
+                      className="h-5 w-5 rounded-lg border-2 border-primary/20 text-primary focus:ring-primary/20 bg-muted/30" />
+                    <Label htmlFor="default" className="text-[11px] font-black uppercase tracking-tighter text-foreground">Sede Predeterminada</Label>
                 </div>
-                <Button type="submit" disabled={isLoading} className="flex-1">
-                    {isLoading ? 'Guardando...' : (isEditing ? 'Actualizar' : 'Añadir')}
+                <Button type="submit" disabled={isLoading} className="flex-1 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-xs h-11">
+                    {isLoading ? 'Procesando...' : (isEditing ? 'Actualizar Dirección' : 'Registrar Sede')}
                 </Button>
             </div>
         </div>
       </form>
 
-      <div className="rounded-md border overflow-hidden">
-        <div className="responsive-table-container">
-          <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Sede</TableHead>
-              <TableHead>Dirección</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {addresses.length > 0 ? (
-              addresses.map((address) => (
-                <TableRow key={address.id}>
-                  <TableCell className="font-medium">
-                    {address.label}
-                    {address.is_default && (
-                        <div className="flex items-center gap-1 text-[10px] text-primary mt-0.5">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Principal
-                        </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {address.address_line_1}, {address.city_state_zip}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={address.is_default ? "default" : "secondary"}>
-                        {address.is_default ? "Activa" : "Opcional"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => {
-                                setIsEditing(true);
-                                setFormData(address);
-                            }}
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleDelete(address.id)}
-                            className="text-destructive"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground italic">
-                  No hay sedes configuradas.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        </div>
+      <div className="space-y-4">
+        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 ml-1">Sedes Configuradas</h4>
+        <DataTableResponsive
+          data={addresses}
+          columns={columns}
+          rowId={(a) => a.id}
+          mobileConfig={{
+            title: (a) => a.label,
+            subtitle: (a) => a.address_line_1,
+            badge: (a) => a.is_default && (
+              <Badge variant="default" className="text-[8px] h-4 bg-primary/10 text-primary border-none uppercase font-black">
+                Ppal
+              </Badge>
+            )
+          }}
+          actions={(a) => (
+            <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={() => { setIsEditing(true); setFormData(a); }} className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-primary/5">
+                    <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/5">
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </div>
+          )}
+          emptyMessage="No has configurado sedes todavía."
+        />
       </div>
     </div>
   )
