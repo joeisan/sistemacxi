@@ -23,7 +23,7 @@ interface LockerAddressCardProps {
 export function LockerAddressCard({ hubs, clientCode, enterpriseName }: LockerAddressCardProps) {
   
   const copyFullAddress = (hub: AddressHub) => {
-    const full = `${enterpriseName} - ${clientCode}\n${hub.address_line_1}\n${hub.city_state_zip}\n${hub.country}\nTel: ${hub.phone}`
+    const full = `${clientCode}\n${hub.address_line_1}\n${hub.city_state_zip}\n${hub.country}\nTel: ${hub.phone}`
     navigator.clipboard.writeText(full)
     toast.success('Dirección completa copiada')
   }
@@ -51,9 +51,9 @@ export function LockerAddressCard({ hubs, clientCode, enterpriseName }: LockerAd
             <div className="flex items-center justify-between gap-2 rounded-md bg-background/50 p-2 border border-primary/10">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-bold text-muted-foreground">Tu Identificador</span>
-                <span className="text-sm font-mono font-bold text-primary">{enterpriseName} - {clientCode}</span>
+                <span className="text-sm font-mono font-bold text-primary">{clientCode}</span>
               </div>
-              <CopyButton value={`${enterpriseName} - ${clientCode}`} />
+              <CopyButton value={clientCode} />
             </div>
 
             <div className="space-y-2 text-sm">
