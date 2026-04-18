@@ -64,14 +64,24 @@ export default async function SuperAdminTenantsPage() {
               <Badge variant="destructive" className="h-4 px-1 text-[10px] animate-pulse">SOLICITUD UPGRADE</Badge>
             )}
           </div>
-          <a 
-            href={`/${tenant.subdomain}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-xs text-primary font-mono bg-primary/5 px-1.5 py-0.5 rounded w-fit italic border border-primary/10 hover:bg-primary/10 transition-colors"
-          >
-            {rootDomain}/{tenant.subdomain}
-          </a>
+          <div className="flex flex-col gap-0.5 mt-1">
+            <a 
+              href={`/${tenant.subdomain}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[10px] text-primary font-mono bg-primary/5 px-1.5 py-0.5 rounded w-fit italic border border-primary/10 hover:bg-primary/20 transition-colors"
+            >
+              {rootDomain}/{tenant.subdomain}
+            </a>
+            <a 
+              href={`/${tenant.subdomain}/admin`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[9px] text-muted-foreground font-mono hover:text-primary transition-colors pl-1"
+            >
+              {rootDomain}/{tenant.subdomain}/admin
+            </a>
+          </div>
         </div>
       )
     },
