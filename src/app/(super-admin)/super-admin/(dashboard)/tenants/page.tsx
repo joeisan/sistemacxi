@@ -144,10 +144,7 @@ export default async function SuperAdminTenantsPage() {
         }}
         actions={(tenant) => {
           const protocol = host.includes('localhost') ? 'http' : 'https'
-          const isVercel = host.includes('sistemacxi.vercel.app')
-          const companyUrl = isVercel 
-            ? `https://sistemacxi.vercel.app/${tenant.subdomain}`
-            : `${protocol}://${tenant.subdomain}.${rootDomain}`
+          const companyUrl = `${protocol}://${tenant.subdomain}.${rootDomain}`
           return (
             <>
               <TrialActions tenantId={tenant.id} isTrial={tenant.is_trial} />

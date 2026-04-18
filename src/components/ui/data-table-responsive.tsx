@@ -99,7 +99,7 @@ export function DataTableResponsive<T>({
                     {mobileConfig?.title ? mobileConfig.title(row) : (mobileConfig?.primaryFields?.[0] ? (row[mobileConfig.primaryFields[0] as keyof T] as React.ReactNode) : 'Registro')}
                   </div>
                   {mobileConfig?.subtitle && (
-                    <div className="text-xs font-medium text-muted-foreground">
+                    <div className="text-xs font-medium text-muted-foreground break-all">
                       {mobileConfig.subtitle(row)}
                     </div>
                   )}
@@ -127,7 +127,7 @@ export function DataTableResponsive<T>({
                       <div className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70">
                         {col.header}
                       </div>
-                      <div className="text-xs font-semibold truncate text-foreground">
+                      <div className="text-xs font-semibold text-foreground">
                         {col.render ? col.render(row) : (row[col.accessorKey!] as React.ReactNode)}
                       </div>
                     </div>

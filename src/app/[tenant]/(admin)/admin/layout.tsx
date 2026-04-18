@@ -53,6 +53,26 @@ export default async function AdminDashboardLayout({
   const whatsappMessage = encodeURIComponent(`Hola, quiero reactivar mi cuenta ${tenantData.name}`)
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
 
+  let timeRemaining = ''
+  if (!isExpired) {
+    const targetDate = tenantData.is_trial ? tenantData.trial_ends_at : tenantData.plan_expiry_date;
+    if (targetDate) {
+      const diffMs = new Date(targetDate).getTime() - Date.now();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+      
+      if (diffDays > 1) {
+        timeRemaining = `Quedan ${diffDays} días`;
+      } else if (diffHours > 0) {
+        timeRemaining = `Quedan ${diffHours} horas`;
+      } else {
+        timeRemaining = `Expira en breve`;
+      }
+    } else {
+      timeRemaining = 'Tiempo ilimitado'
+    }
+  }
+
   const navItems = [
     { href: `/admin`, label: 'Resumen', iconName: 'LayoutDashboard' },
     { href: `/admin/clientes`, label: 'Clientes', iconName: 'Users' },
@@ -79,7 +99,7 @@ export default async function AdminDashboardLayout({
             <div className={`font-bold text-base mb-2 ${isExpired ? 'text-destructive' : ''}`}>
                 {isExpired ? 'PLAN EXPIRADO' : (tenantData.plan_type === 'monthly' ? 'Plan Mensual' : 'Plan Anual')}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                         <Calendar className="h-3 w-3" /> Expiración:
@@ -88,13 +108,22 @@ export default async function AdminDashboardLayout({
                       <span className={`font-mono font-bold ${isExpired ? 'text-destructive' : 'text-primary'}`}>
                           {isExpired ? 'EXPIRADO' : (tenantData.plan_expiry_date ? new Date(tenantData.plan_expiry_date).toLocaleDateString() : 'Indefinida')}
                       </span>
-                      {tenantData.is_trial && !isExpired && (
-                        <Badge variant="destructive" className="h-4 px-1 text-[8px] font-black animate-pulse">
-                          PRUEBA ACTIVA
-                        </Badge>
-                      )}
                     </div>
                 </div>
+                
+                {/* Time Remaining Bar/Focus */}
+                {!isExpired && timeRemaining && (
+                  <div className="flex items-center justify-between bg-primary/10 rounded-md px-2 py-1.5">
+                    <span className="text-[10px] font-black uppercase text-primary">Tiempo Restante</span>
+                    <span className="text-xs font-bold text-primary">{timeRemaining}</span>
+                  </div>
+                )}
+
+                {tenantData.is_trial && !isExpired && (
+                  <Badge variant="destructive" className="h-4 px-1 text-[8px] font-black w-full justify-center animate-pulse mt-2">
+                    MODO PRUEBA ACTIVO
+                  </Badge>
+                )}
             </div>
             <a 
                 href={whatsappLink}
@@ -111,34 +140,7 @@ export default async function AdminDashboardLayout({
   )
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-muted/40">
-      {!tenantData.is_active && (
-        <div className="sticky top-0 z-[101] w-full bg-destructive/90 backdrop-blur-sm text-destructive-foreground py-2 px-4 shadow-lg flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500">
-           <ShieldAlert className="h-4 w-4 shrink-0" />
-           <p className="text-sm font-bold tracking-tight">
-             MODO SOLO LECTURA: Tu cuenta ha sido suspendida. Contacta a soporte para más detalles.
-           </p>
-        </div>
-      )}
-
-      {isExpired && (
-        <div className="sticky top-0 z-[100] w-full bg-orange-600 backdrop-blur-sm text-white py-2 px-4 shadow-lg flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-           <Zap className="h-4 w-4 shrink-0 fill-current animate-pulse" />
-           <p className="text-sm font-bold tracking-tight">
-             TU PLAN HA EXPIRADO: Tu cuenta está en modo lectura. Por favor reactiva tu suscripción para continuar.
-           </p>
-           <a 
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter hover:bg-orange-50 transition-colors"
-           >
-             Reactivar vía WhatsApp
-           </a>
-        </div>
-      )}
-
-      <div className="flex flex-1 flex-col md:flex-row relative">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row relative">
         {/* Sidebar Desktop */}
         <aside className="hidden w-64 flex-col border-r bg-card/30 backdrop-blur-xl md:flex sticky top-0 h-screen overflow-y-auto">
         <div className="flex h-16 items-center border-b px-6 bg-primary/5">
@@ -194,6 +196,32 @@ export default async function AdminDashboardLayout({
       </aside>
 
       <div className="flex flex-1 flex-col min-w-0">
+        {!tenantData.is_active && (
+           <div className="sticky top-0 z-[101] w-full bg-destructive/90 backdrop-blur-sm text-destructive-foreground py-2 px-4 shadow-sm flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-4 duration-500">
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              <p className="text-sm font-bold tracking-tight">
+                MODO SOLO LECTURA: Tu cuenta ha sido suspendida. Contacta a soporte para más detalles.
+              </p>
+           </div>
+        )}
+
+        {isExpired && (
+           <div className="sticky top-0 z-[100] w-full bg-orange-600 backdrop-blur-sm text-white py-2 px-4 shadow-sm flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+              <Zap className="h-4 w-4 shrink-0 fill-current animate-pulse" />
+              <p className="text-sm font-bold tracking-tight">
+                TU PLAN HA EXPIRADO: Tu cuenta está en modo lectura. Por favor reactiva.
+              </p>
+              <a 
+               href={whatsappLink}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter hover:bg-orange-50 transition-colors"
+              >
+                Reactivar
+              </a>
+           </div>
+        )}
+
         <MobileNav 
           title={tenantData.name} 
           items={navItems} 
@@ -205,7 +233,6 @@ export default async function AdminDashboardLayout({
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 md:pt-4 md:gap-8">
           {children}
         </main>
-      </div>
       </div>
     </div>
   )
