@@ -89,7 +89,7 @@ export default async function AdminPlanesPage({
       </div>
 
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
-        <div className="overflow-x-auto w-full">
+        <div className="responsive-table-container">
             <Table>
             <TableHeader>
                 <TableRow className="bg-muted/50">

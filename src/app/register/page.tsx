@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { registerAdmin } from "@/app/actions/auth/register-admin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Loader2, AlertCircle, CheckCircle2, Globe2, ArrowRight } from "lucide-react"
@@ -176,17 +177,16 @@ export default function RegisterPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password">Contraseña Maestra</Label>
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      required 
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
+                     <Label htmlFor="password">Contraseña Maestra</Label>
+                     <PasswordInput 
+                       id="password" 
+                       required 
+                       value={formData.password}
+                       onChange={(e) => setFormData({...formData, password: e.target.value})}
+                       disabled={loading}
+                       className="h-11"
+                     />
+                   </div>
                 </div>
 
                 <Button type="submit" className="w-full h-12 font-black text-lg shadow-lg shadow-primary/20" disabled={loading}>

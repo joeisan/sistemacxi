@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 import {
   Table,
   TableBody,
@@ -27,6 +28,7 @@ export default async function AdminPaquetesPage({
 
   if (!tenantData) return notFound()
 
+  const isExpired = isTenantExpired(tenantData)
   const supabase = createAdminClient()
 
   // Fetch packages for this tenant
@@ -62,12 +64,18 @@ export default async function AdminPaquetesPage({
           <h1 className="text-3xl font-bold tracking-tight">Paquetes</h1>
           <p className="text-muted-foreground">Control de inventario y estados de envío para {tenantData.name}.</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/paquetes/nuevo">
-            <Plus className="h-4 w-4 mr-2" />
-            Registrar Paquete
-          </Link>
-        </Button>
+        {!isExpired ? (
+          <Button asChild>
+            <Link href="/admin/paquetes/nuevo">
+              <Plus className="h-4 w-4 mr-2" />
+              Registrar Paquete
+            </Link>
+          </Button>
+        ) : (
+          <Badge variant="outline" className="text-destructive border-destructive/20 bg-destructive/5 font-black px-4 py-2">
+            PLAN EXPIRADO - MODO LECTURA
+          </Badge>
+        )}
       </div>
 
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
@@ -107,13 +115,21 @@ export default async function AdminPaquetesPage({
                         {pkg.total_amount > 0 ? `$${pkg.total_amount.toFixed(2)}` : '-'}
                     </TableCell>
                     <TableCell className="text-right">
-                        <StatusSelector packageId={pkg.id} currentStatus={pkg.status} />
+                        {!isExpired ? (
+                          <StatusSelector packageId={pkg.id} currentStatus={pkg.status} />
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold">{pkg.status.replace('_', ' ')}</Badge>
+                        )}
                     </TableCell>
                     <TableCell className="text-right">
-                        <BillingDialog 
-                            packageData={pkg} 
-                            clientPlan={pkg.clients?.pricing_plans} 
-                        />
+                        {!isExpired ? (
+                          <BillingDialog 
+                              packageData={pkg} 
+                              clientPlan={pkg.clients?.pricing_plans} 
+                          />
+                        ) : (
+                          <span className="text-[10px] font-bold text-muted-foreground italic">Solo lectura</span>
+                        )}
                     </TableCell>
                     </TableRow>
                 ))

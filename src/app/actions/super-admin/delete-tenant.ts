@@ -4,27 +4,34 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function deleteTenant(tenantId: string) {
-  const adminClient = createAdminClient()
+  const supabase = createAdminClient()
 
-  console.log(`--- ELIMINANDO TENANT: ${tenantId} ---`)
+  // 1. Obtener datos del tenant antes de borrar (para logs o limpieza manual si es necesario)
+  const { data: tenant, error: fetchError } = await supabase
+    .from('tenants')
+    .select('subdomain')
+    .eq('id', tenantId)
+    .single()
 
-  // 1. Opcional: Podríamos eliminar también los usuarios asociados en Auth, 
-  // pero por ahora eliminaremos los perfiles y registros de DB.
-  // Gracias a ON DELETE CASCADE en el schema SQL, borrar el tenant
-  // debería limpiar tenant_settings, packages, etc.
-  
-  const { error } = await adminClient
+  if (fetchError || !tenant) {
+    return { success: false, error: 'Empresa no encontrada.' }
+  }
+
+  // 2. Borrar en cascada (La DB se encarga de clientes, paquetes y settings por ON DELETE CASCADE)
+  // Nota: Los usuarios de Auth de Supabase NO se borran en cascada automáticamente.
+  // Pero aquí priorizaremos borrar el registro del tenant para liberar el subdominio.
+  const { error: deleteError } = await supabase
     .from('tenants')
     .delete()
     .eq('id', tenantId)
 
-  if (error) {
-    console.error('Error al eliminar tenant:', error)
-    return { success: false, error: error.message }
+  if (deleteError) {
+    console.error('Error al borrar tenant:', deleteError)
+    return { success: false, error: `Error DB: ${deleteError.message}` }
   }
 
+  // 3. Limpieza de Caché
   revalidatePath('/super-admin/tenants')
-  revalidatePath('/super-admin')
   
   return { success: true }
 }

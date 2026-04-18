@@ -2,10 +2,12 @@ import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { LayoutDashboard, Users, Package, Settings, Bell, LogOut, ShieldAlert, CreditCard, Calendar, Zap, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Users, Package, Settings, Bell, LogOut, ShieldAlert, CreditCard, Calendar, Zap, ChevronRight, User } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { FontSizeSelector } from '@/components/layout/font-size-selector'
+import { Badge } from '@/components/ui/badge'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
 export default async function AdminDashboardLayout({
   children,
@@ -43,11 +45,13 @@ export default async function AdminDashboardLayout({
                        profile?.tenant_id === tenantData.id
 
   if (!isAuthorized) {
-    // If not authorized as admin of this tenant, check if they are Super Admin
-    // (User said "aislado", but usually Super Admins need a way to help. 
-    // However, following "aislado" strictly: only the specific admin enters)
     redirect(`/${tenant}`)
   }
+
+  const isExpired = isTenantExpired(tenantData)
+  const whatsappNumber = "50762879345"
+  const whatsappMessage = encodeURIComponent(`Hola, quiero reactivar mi cuenta ${tenantData.name}`)
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`
 
   const navItems = [
     { href: `/admin`, label: 'Resumen', iconName: 'LayoutDashboard' },
@@ -72,23 +76,36 @@ export default async function AdminDashboardLayout({
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Suscripción</span>
             </div>
-            <div className="font-bold text-base mb-2">{tenantData.plan_type === 'monthly' ? 'Plan Mensual' : 'Plan Anual'}</div>
+            <div className={`font-bold text-base mb-2 ${isExpired ? 'text-destructive' : ''}`}>
+                {isExpired ? 'PLAN EXPIRADO' : (tenantData.plan_type === 'monthly' ? 'Plan Mensual' : 'Plan Anual')}
+            </div>
             <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                         <Calendar className="h-3 w-3" /> Expiración:
                     </span>
-                    <span className="font-mono font-bold text-primary">
-                        {tenantData.plan_expiry_date ? new Date(tenantData.plan_expiry_date).toLocaleDateString() : 'Indefinida'}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`font-mono font-bold ${isExpired ? 'text-destructive' : 'text-primary'}`}>
+                          {isExpired ? 'EXPIRADO' : (tenantData.plan_expiry_date ? new Date(tenantData.plan_expiry_date).toLocaleDateString() : 'Indefinida')}
+                      </span>
+                      {tenantData.is_trial && !isExpired && (
+                        <Badge variant="destructive" className="h-4 px-1 text-[8px] font-black animate-pulse">
+                          PRUEBA ACTIVA
+                        </Badge>
+                      )}
+                    </div>
                 </div>
             </div>
-            <Link 
-                href="/admin/configuracion" 
-                className="mt-3 flex items-center justify-center gap-1 w-full py-2 rounded-md text-[10px] font-black uppercase tracking-tighter bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+            <a 
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`mt-3 flex items-center justify-center gap-1 w-full py-2 rounded-md text-[10px] font-black uppercase tracking-tighter transition-colors ${
+                  isExpired ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary/10 hover:bg-primary/20 text-primary'
+                }`}
             >
-                Gestionar Cuenta <ChevronRight className="h-3 w-3" />
-            </Link>
+                {isExpired ? 'Reactivar Ahora' : 'Gestionar Cuenta'} <ChevronRight className="h-3 w-3" />
+            </a>
         </div>
     </div>
   )
@@ -104,11 +121,32 @@ export default async function AdminDashboardLayout({
         </div>
       )}
 
+      {isExpired && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-orange-600 backdrop-blur-sm text-white py-2 px-4 shadow-lg flex items-center justify-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+           <Zap className="h-4 w-4 shrink-0 fill-current animate-pulse" />
+           <p className="text-sm font-bold tracking-tight">
+             TU PLAN HA EXPIRADO: Tu cuenta está en modo lectura. Por favor reactiva tu suscripción para continuar.
+           </p>
+           <a 
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-black uppercase tracking-tighter hover:bg-orange-50 transition-colors"
+           >
+             Reactivar vía WhatsApp
+           </a>
+        </div>
+      )}
+
       {/* Sidebar Desktop */}
       <aside className={`hidden w-64 flex-col border-r bg-background md:flex ${!tenantData.is_active ? 'pt-10' : ''}`}>
         <div className="flex h-16 items-center border-b px-6 bg-primary/5">
           <Link href={`/${tenant}/admin`} className="flex items-center gap-2 font-bold text-lg">
-            <span className="truncate">Admin - {tenantData.name}</span>
+            {tenantData.logo_url ? (
+              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain" />
+            ) : (
+              <span className="truncate">Admin - {tenantData.name}</span>
+            )}
           </Link>
         </div>
         
@@ -140,6 +178,10 @@ export default async function AdminDashboardLayout({
                 <FontSizeSelector />
                 <ThemeToggle />
             </div>
+            <Link href={`/${tenant}/admin/configuracion/perfil`} className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
+              <User className="h-4 w-4" />
+              Perfil y Marca
+            </Link>
            <Link href={`/${tenant}/admin/configuracion`} className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
              <Settings className="h-4 w-4" />
              Configuración

@@ -16,44 +16,41 @@ export const config = {
 }
 
 export async function proxy(request: NextRequest) {
-  // Create base response and update auth session
-  const baseResponse = NextResponse.next({
-    request: { headers: request.headers },
-  })
-  const response = await updateSession(request, baseResponse)
-
   const url = request.nextUrl
-  const hostname = request.headers.get('host') || ''
-
-  // TODO: Add your production domains here
+  const host = request.headers.get('host') || ''
+  
+  // Support for multiple environments
   const rootDomains = ['localhost:3000', 'sistemacxi.vercel.app']
   
-  let currentHost = hostname
-  if (currentHost.includes('localhost')) {
-    currentHost = currentHost.replace(/:\d+$/, '') // remove port
-  }
-
-  // Check if we are on a subdomain
+  // 1. Identify Subdomain
   let isSubdomain = false;
   let subdomain = '';
   
   for (const root of rootDomains) {
-      const parsedRoot = root.replace(/:\d+$/, '')
-      if (currentHost.endsWith(`.${parsedRoot}`)) {
+      const rootWithoutPort = root.split(':')[0]
+      // Check if host matches subdomain pattern (sub.domain.com)
+      if (host.endsWith(`.${rootWithoutPort}`) || host.endsWith(`.${root}`)) {
          isSubdomain = true;
-         subdomain = currentHost.replace(`.${parsedRoot}`, '').toLowerCase();
+         subdomain = host.split(`.${rootWithoutPort}`)[0].toLowerCase();
          break;
       }
   }
 
-  // Rewrite to the appropriate folder structure
-  if (isSubdomain) {
+  // 2. Handle Multi-Tenant Rewriting
+  if (isSubdomain && subdomain) {
+    // If the path already includes the subdomain prefix (internal match), just update session
+    if (url.pathname.startsWith(`/${subdomain}`)) {
+      return await updateSession(request, NextResponse.next())
+    }
+
+    // Internal rewrite: slug.domain.com/admin -> /slug/admin
+    // This allows the browser URL to remain clean while serving content from [tenant]
     const rewriteUrl = new URL(`/${subdomain}${url.pathname}${url.search}`, request.url)
-    return NextResponse.rewrite(rewriteUrl, { 
-      headers: response.headers 
-    })
+    const response = NextResponse.rewrite(rewriteUrl)
+    return await updateSession(request, response)
   }
 
-  // For the main domain (Super Admin, Landing, etc)
-  return response
+  // 3. Main Domain Logic
+  // Apply session updates to standard requests
+  return await updateSession(request, NextResponse.next())
 }

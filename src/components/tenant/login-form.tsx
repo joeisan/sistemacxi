@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { loginUser } from '@/app/actions/auth/login'
@@ -74,10 +75,8 @@ export function LoginForm({ tenantSlug }: { tenantSlug: string }) {
             ¿Olvidaste tu contraseña?
           </Link>
         </div>
-        <Input 
+        <PasswordInput 
           id="password" 
-          type="password" 
-          className="h-12 bg-background/50 border-muted" 
           disabled={isLoading}
           {...register('password')}
         />

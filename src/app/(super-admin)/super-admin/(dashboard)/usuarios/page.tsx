@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import {
   Table,
   TableBody,
@@ -8,13 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { DeleteUserDialog } from '@/components/super-admin/delete-user-dialog'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SuperAdminUsuariosPage() {
-  const supabase = createAdminClient()
+  const supabaseAdmin = createAdminClient()
+  const supabaseServer = await createClient()
 
-  const { data: users, error } = await supabase
+  const { data: { user: currentUser } } = await supabaseServer.auth.getUser()
+
+  const { data: users, error } = await supabaseAdmin
     .from('profiles')
     .select(`
       id,
@@ -33,7 +38,7 @@ export default async function SuperAdminUsuariosPage() {
   let tenantMap: Record<string, string> = {}
   
   if (tenantIds.length > 0) {
-    const { data: tenants } = await supabase
+    const { data: tenants } = await supabaseAdmin
       .from('tenants')
       .select('id, name')
       .in('id', tenantIds)
@@ -51,7 +56,7 @@ export default async function SuperAdminUsuariosPage() {
       </div>
 
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
-        <div className="overflow-x-auto w-full">
+        <div className="responsive-table-container">
             <Table>
             <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -60,7 +65,8 @@ export default async function SuperAdminUsuariosPage() {
                 <TableHead className="font-bold whitespace-nowrap">Rol</TableHead>
                 <TableHead className="font-bold whitespace-nowrap">Empresa</TableHead>
                 <TableHead className="font-bold whitespace-nowrap">Fecha</TableHead>
-                <TableHead className="text-right font-bold whitespace-nowrap">Estado</TableHead>
+                <TableHead className="font-bold text-center whitespace-nowrap">Estado</TableHead>
+                <TableHead className="text-right font-bold whitespace-nowrap">Acciones</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -78,10 +84,21 @@ export default async function SuperAdminUsuariosPage() {
                     <TableCell className="text-muted-foreground text-[10px] whitespace-nowrap">
                         {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-center">
                         <Badge variant={user.is_active ? 'default' : 'secondary'} className="text-[10px] h-5">
                         {user.is_active ? 'Activo' : 'Inactivo'}
                         </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                        {currentUser?.id !== user.id ? (
+                          <DeleteUserDialog 
+                            userId={user.id} 
+                            userEmail={user.email} 
+                            userName={user.full_name} 
+                          />
+                        ) : (
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 italic">Tú</span>
+                        )}
                     </TableCell>
                     </TableRow>
                 ))

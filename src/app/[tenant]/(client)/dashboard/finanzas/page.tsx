@@ -138,7 +138,7 @@ export default async function ClientFinanzasPage({
                 Cargos por Paquetes
             </h2>
             <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
-                <div className="overflow-x-auto w-full">
+                <div className="responsive-table-container">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-muted/50">
@@ -182,7 +182,7 @@ export default async function ClientFinanzasPage({
                 Historial de Pagos
             </h2>
             <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
-                <div className="overflow-x-auto w-full">
+                <div className="responsive-table-container">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-muted/50">

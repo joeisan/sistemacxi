@@ -2,6 +2,7 @@ import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { LoginForm } from '@/components/tenant/login-form'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +18,15 @@ export default async function TenantLoginPage({
 
   if (!tenantData) return null
 
+  const supabase = createAdminClient()
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('avatar_url')
+    .eq('tenant_id', tenantData.id)
+    .eq('role', 'admin')
+    .limit(1)
+    .single()
+
   return (
     <div className="flex min-h-screen items-center justify-center relative overflow-hidden bg-muted/20">
       {/* Decorative Blob backgrounds */}
@@ -25,13 +35,23 @@ export default async function TenantLoginPage({
 
       <div className="w-full max-w-md space-y-8 p-4 relative z-10">
         <div className="flex flex-col items-center justify-center space-y-4">
-          {tenantData.logo_url ? (
-            <img 
-              src={tenantData.logo_url} 
-              alt={`Logo de ${tenantData.name}`} 
-              className="h-20 w-auto object-contain drop-shadow-sm"
-            />
-          ) : (
+          <div className="flex -space-x-4">
+             {tenantData.logo_url && (
+               <img 
+                 src={tenantData.logo_url} 
+                 alt={`Logo de ${tenantData.name}`} 
+                 className="h-20 w-auto object-contain drop-shadow-xl p-2 bg-background rounded-2xl border-4 border-background z-10"
+               />
+             )}
+             {adminProfile?.avatar_url && (
+               <img 
+                 src={adminProfile.avatar_url} 
+                 alt="Admin" 
+                 className="h-20 w-20 object-cover rounded-full border-4 border-background shadow-xl z-20"
+               />
+             )}
+          </div>
+          {!tenantData.logo_url && !adminProfile?.avatar_url && (
             <div className="h-20 w-20 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-3xl font-heading font-bold shadow-lg shadow-primary/20">
               {tenantData.name.charAt(0)}
             </div>

@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { StatusToggleButton } from '@/components/super-admin/status-toggle-button'
 import { SendAlertButton } from '@/components/super-admin/send-alert-button'
 import { TrialActions } from '@/components/super-admin/trial-actions'
+import { DeleteTenantButton } from '@/components/super-admin/delete-tenant-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,14 @@ export default async function SuperAdminTenantsPage() {
 
   const { data: tenants, error } = await supabase
     .from('tenants')
-    .select('*')
+    .select(`
+      *,
+      profiles (
+        full_name,
+        email,
+        role
+      )
+    `)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -45,11 +53,12 @@ export default async function SuperAdminTenantsPage() {
       </div>
 
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
-        <div className="overflow-x-auto w-full">
+        <div className="responsive-table-container">
             <Table>
             <TableHeader>
                 <TableRow className="bg-muted/50">
-                <TableHead className="font-bold whitespace-nowrap">Nombre / Subdominio</TableHead>
+                <TableHead className="font-bold whitespace-nowrap">Administrador</TableHead>
+                <TableHead className="font-bold whitespace-nowrap">Empresa / Dominio</TableHead>
                 <TableHead className="font-bold whitespace-nowrap">Plan / Expiración</TableHead>
                 <TableHead className="font-bold whitespace-nowrap">Estado Acceso</TableHead>
                 <TableHead className="font-bold text-right whitespace-nowrap">Acciones</TableHead>
@@ -60,15 +69,38 @@ export default async function SuperAdminTenantsPage() {
                 tenants.map((tenant: any) => (
                     <TableRow key={tenant.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell>
-                        <div className="flex flex-col min-w-[180px]">
+                        <div className="flex flex-col min-w-[200px]">
+                          {(() => {
+                            const admin = tenant.profiles?.find((p: any) => p.role === 'admin')
+                            if (admin) {
+                              return (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-foreground text-sm uppercase tracking-tight">{admin.full_name || 'Sin Nombre'}</span>
+                                  </div>
+                                  <span className="text-xs text-primary font-semibold">{admin.email}</span>
+                                </>
+                              )
+                            } else {
+                              return (
+                                <>
+                                  <span className="text-xs font-bold text-destructive uppercase">Sin Administrador</span>
+                                  <span className="text-[10px] text-muted-foreground">{tenant.trial_contact_email || 'No contact email'}</span>
+                                </>
+                              )
+                            }
+                          })()}
+                        </div>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-col min-w-[150px]">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground text-xs">{tenant.name}</span>
+                            <span className="font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">{tenant.name}</span>
                             {tenant.trial_upgrade_requested && (
                               <Badge variant="destructive" className="h-4 px-1 text-[8px] animate-pulse">SOLICITUD UPGRADE</Badge>
                             )}
                           </div>
-                          <span className="text-[10px] text-primary font-medium">{tenant.trial_contact_email || 'Sin correo registrado'}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">{tenant.subdomain}.sistemacxi.vercel.app</span>
+                          <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1 rounded w-fit">{tenant.subdomain}.sistemacxi.vercel.app</span>
                         </div>
                     </TableCell>
                     <TableCell>
@@ -121,6 +153,8 @@ export default async function SuperAdminTenantsPage() {
                             </Button>
                         </Link>
 
+                        <DeleteTenantButton tenantId={tenant.id} tenantName={tenant.name} />
+                        
                         <a 
                             href={`https://${tenant.subdomain}.sistemacxi.vercel.app`} 
                             target="_blank"
@@ -137,7 +171,7 @@ export default async function SuperAdminTenantsPage() {
                 ))
                 ) : (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground italic text-xs">
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground italic text-xs">
                     No hay empresas registradas.
                     </TableCell>
                 </TableRow>

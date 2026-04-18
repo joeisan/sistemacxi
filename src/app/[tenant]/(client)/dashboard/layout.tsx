@@ -128,7 +128,11 @@ export default async function ClientDashboardLayout({
       {/* Sidebar Desktop */}
       <aside className="hidden w-64 flex-col border-r bg-background md:flex">
         <div className="flex flex-col h-20 justify-center border-b px-6 bg-primary/5">
-            <div className="text-[11px] font-black uppercase tracking-widest text-primary/70 mb-0.5">{tenantData.name}</div>
+            {tenantData.logo_url ? (
+              <img src={tenantData.logo_url} alt={tenantData.name} className="h-8 w-auto object-contain mb-1" />
+            ) : (
+              <div className="text-[11px] font-black uppercase tracking-widest text-primary/70 mb-0.5">{tenantData.name}</div>
+            )}
             <div className="font-bold text-base text-foreground truncate">{displayName}</div>
         </div>
         

@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 import {
   Table,
   TableBody,
@@ -11,7 +12,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { EditClientDialog } from '@/components/tenant/edit-client-dialog'
+import { DeleteClientButton } from '@/components/tenant/delete-client-button'
 import { ClientPackagesColumn } from '@/components/tenant/client-packages-column'
+import { CreateClientDialog } from '@/components/tenant/create-client-dialog'
 
 export default async function AdminClientesPage({
   params,
@@ -24,6 +27,7 @@ export default async function AdminClientesPage({
 
   if (!tenantData) return notFound()
 
+  const isExpired = isTenantExpired(tenantData)
   const supabase = createAdminClient()
 
   // Fetch clients for this tenant
@@ -78,9 +82,17 @@ export default async function AdminClientesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
-        <p className="text-muted-foreground">Gestiona los clientes registrados en {tenantData.name}.</p>
+      <div className="flex justify-between items-center sm:flex-row flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+          <p className="text-muted-foreground">Gestiona los clientes registrados en {tenantData.name}.</p>
+        </div>
+        {!isExpired && (
+          <CreateClientDialog 
+            tenantId={tenantData.id} 
+            availablePlans={plans || []} 
+          />
+        )}
       </div>
 
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
@@ -128,7 +140,20 @@ export default async function AdminClientesPage({
                         </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                        <EditClientDialog client={client} availablePlans={plans || []} />
+                        <div className="flex justify-end items-center gap-2">
+                            {!isExpired ? (
+                              <>
+                                <EditClientDialog client={client} availablePlans={plans || []} />
+                                <DeleteClientButton 
+                                    clientId={client.id} 
+                                    clientName={client.full_name} 
+                                    tenantSubdomain={tenant}
+                                />
+                              </>
+                            ) : (
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 italic bg-muted rounded">Lectura</span>
+                            )}
+                        </div>
                     </TableCell>
                     </TableRow>
                     )

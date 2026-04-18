@@ -170,8 +170,9 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
         </div>
       </form>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-hidden">
+        <div className="responsive-table-container">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Sede</TableHead>
@@ -234,6 +235,7 @@ export function AddressManager({ tenantId, initialAddresses }: { tenantId: strin
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
 interface RegisterPackageData {
   tenantId: string
@@ -15,6 +16,22 @@ interface RegisterPackageData {
 export async function registerPackage(data: RegisterPackageData) {
   try {
     const adminClient = createAdminClient()
+
+    // 0. Verificar si el tenant está expirado o inactivo
+    const { data: tenant } = await adminClient
+      .from('tenants')
+      .select('*')
+      .eq('id', data.tenantId)
+      .single()
+
+    if (!tenant || !tenant.is_active || isTenantExpired(tenant)) {
+      return { 
+        success: false, 
+        error: !tenant?.is_active 
+          ? 'La empresa está suspendida.' 
+          : 'Tu plan ha expirado. El sistema está en MODO LECTURA.' 
+      }
+    }
 
     console.log(`--- REGISTRANDO PAQUETE PARA CLIENTE: ${data.clientId} ---`)
 

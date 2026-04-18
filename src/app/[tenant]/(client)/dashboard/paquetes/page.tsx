@@ -74,8 +74,8 @@ export default async function ClientPaquetesPage({
         <AddPackageDialog tenantId={tenantData.id} clientId={clientData.id} />
       </div>
 
-      <div className="border rounded-xl bg-card overflow-hidden">
-        <div className="overflow-x-auto w-full">
+      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+        <div className="responsive-table-container">
             <Table>
             <TableHeader>
                 <TableRow>

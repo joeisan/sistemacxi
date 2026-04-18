@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Outfit } from 'next/font/google'
-import { Toaster } from '@/components/ui/sonner'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ClientProviders } from '@/components/providers/client-providers'
 import './globals.css'
 
 const inter = Inter({
@@ -30,16 +29,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${outfit.variable} h-full antialiased`}
     >
+      <head />
       <body suppressHydrationWarning className="font-sans min-h-full flex flex-col items-stretch">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ClientProviders>
           {children}
-          <Toaster />
-        </ThemeProvider>
+        </ClientProviders>
       </body>
     </html>
   )

@@ -1,26 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, Loader2, AlertCircle, ArrowRight } from "lucide-react"
-import { loginUser } from "@/app/actions/auth/login"
-import { toast } from "sonner"
+import { ShieldCheck, Loader2, AlertCircle } from "lucide-react"
 
-export default function GeneralLoginPage() {
+export default function SuperAdminLoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const params = useParams()
-  
-  // If we are in a tenant route (via rewrite), params.tenant will be populated
-  const tenantSlug = params?.tenant as string | undefined
+  const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,20 +24,26 @@ export default function GeneralLoginPage() {
     setError(null)
 
     try {
-      const result = await loginUser({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        tenantSlug
       })
 
-      if (!result.success) {
-        throw new Error(result.error)
+      if (authError) throw authError
+
+      // Verify if user is super_admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError || profile?.role !== 'super_admin') {
+        await supabase.auth.signOut()
+        throw new Error("No tienes permisos de Super Administrador.")
       }
 
-      toast.success("Sesión iniciada correctamente")
-      
-      // Redirect based on the path returned by the action
-      router.push(result.redirectPath!)
+      router.push("/super-admin")
       router.refresh()
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión")
@@ -53,22 +55,17 @@ export default function GeneralLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <Building2 className="w-7 h-7 text-primary-foreground" />
+          <div className="w-12 h-12 bg-destructive rounded-xl flex items-center justify-center shadow-lg shadow-destructive/20">
+            <ShieldCheck className="w-7 h-7 text-destructive-foreground" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight">
-            {tenantSlug ? "Acceso Clientes" : "Ingreso al Sistema"}
-          </h1>
+          <h1 className="text-2xl font-black tracking-widest uppercase">Sistema Maestro</h1>
         </div>
 
         <Card className="border shadow-xl bg-background/80 backdrop-blur-xl">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-xl font-bold">Bienvenido de nuevo</CardTitle>
+            <CardTitle className="text-xl font-bold">Portal de Seguridad Global</CardTitle>
             <CardDescription>
-              {tenantSlug 
-                ? `Ingresa a tu cuenta para gestionar tus paquetes.`
-                : "Gestiona tu empresa de logística con LogiStream."
-              }
+              Solo personal autorizado. Nivel Super Administrador.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -81,11 +78,11 @@ export default function GeneralLoginPage() {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">Correo Maestro</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="usuario@ejemplo.com" 
+                  placeholder="admin@platform.com" 
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -94,7 +91,7 @@ export default function GeneralLoginPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">Llave de Acceso</Label>
                   <PasswordInput 
                     id="password" 
                     name="password"
@@ -107,31 +104,17 @@ export default function GeneralLoginPage() {
                   />
               </div>
 
-              <Button type="submit" className="w-full font-bold h-11" disabled={loading}>
+              <Button type="submit" variant="destructive" className="w-full font-bold h-11" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando sesión...
+                    Validando Credenciales...
                   </>
-                ) : (
-                  <>
-                    Entrar al Sistema
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+                ) : "Iniciar Sesión Maestra"}
               </Button>
             </form>
           </CardContent>
         </Card>
-
-        {!tenantSlug && (
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tienes una cuenta?{" "}
-            <a href="/register" className="font-bold text-primary hover:underline">
-              Regístrate aquí
-            </a>
-          </p>
-        )}
       </div>
     </div>
   )
