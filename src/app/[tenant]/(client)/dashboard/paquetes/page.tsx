@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Package, ExternalLink, History, PackageSearch } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { AddPackageDialog } from '@/components/tenant/add-package-dialog'
 import { DataTableResponsive, ColumnDef } from '@/components/ui/data-table-responsive'
 

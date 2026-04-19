@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from "@/components/ui/badge"
 import { DollarSign, Wallet, History, AlertCircle, Receipt, CreditCard } from 'lucide-react'
