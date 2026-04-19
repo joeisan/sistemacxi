@@ -18,6 +18,7 @@ export default function RegisterPage() {
     subdomain: "",
     email: "",
     password: "",
+    clientCodePrefix: "",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,9 +145,30 @@ export default function RegisterPage() {
                       placeholder="Ej: Envíos Worldwide" 
                       required 
                       value={formData.businessName}
-                      onChange={(e) => setFormData({...formData, businessName: e.target.value})}
+                      onChange={(e) => {
+                        const newName = e.target.value
+                        setFormData({
+                          ...formData, 
+                          businessName: newName,
+                          clientCodePrefix: formData.clientCodePrefix ? formData.clientCodePrefix : newName.substring(0, 3).toUpperCase()
+                        })
+                      }}
                       disabled={loading}
                       className="h-11"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="clientCodePrefix">Código de Casilleros (Prefijo)</Label>
+                    <Input 
+                      id="clientCodePrefix" 
+                      placeholder="Ej: ENV" 
+                      required 
+                      value={formData.clientCodePrefix}
+                      onChange={(e) => setFormData({...formData, clientCodePrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
+                      disabled={loading}
+                      maxLength={10}
+                      className="h-11 font-mono uppercase"
                     />
                   </div>
 

@@ -122,7 +122,7 @@ export default async function ClientDashboardPage({
               Paquetes por pagar.
             </p>
             <Button size="sm" className="mt-4 w-full" asChild>
-              <Link href="/dashboard/finanzas">
+              <Link href={`/${tenant}/dashboard/finanzas`}>
                 Ver detalle <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -142,7 +142,7 @@ export default async function ClientDashboardPage({
               Paquetes activos en tránsito.
             </p>
             <Button size="sm" variant="outline" className="mt-4 w-full shadow-sm hover:bg-primary/5 hover:text-primary border-primary/20 font-bold" asChild>
-              <Link href="/dashboard/paquetes">
+              <Link href={`/${tenant}/dashboard/paquetes`}>
                 Ver todos <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -162,7 +162,7 @@ export default async function ClientDashboardPage({
               Servicio de rastreo externo.
             </p>
             <Button size="sm" variant="ghost" className="mt-4 w-full" asChild>
-              <Link href="/dashboard/rastrear">
+              <Link href={`/${tenant}/dashboard/rastrear`}>
                 Ir a rastreo <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

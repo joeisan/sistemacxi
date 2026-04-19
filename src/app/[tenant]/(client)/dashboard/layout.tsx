@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { FontSizeSelector } from '@/components/layout/font-size-selector'
 import { createClient } from '@/lib/supabase/server'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default async function ClientDashboardLayout({
   children,
@@ -172,6 +173,7 @@ export default async function ClientDashboardLayout({
               <User className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
               Mi Perfil
            </Link>
+           <LogoutButton tenantSlug={tenant} className="flex items-center gap-2 w-full p-2 rounded-xl hover:bg-destructive/10 text-xs font-bold text-muted-foreground hover:text-destructive transition-all group" />
         </div>
       </aside>
 

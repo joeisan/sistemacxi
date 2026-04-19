@@ -33,7 +33,21 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
     auth: { autoRefreshToken: false, persistSession: false }
   })
 
-  // 2. Create user with email auto-confirmed
+  // 2. Verify Tenant Config (Hard Block) BEFORE creating users
+  const [plansResponse, settingsResponse] = await Promise.all([
+    adminClient.from('pricing_plans').select('id').eq('tenant_id', tenantId).limit(1),
+    adminClient.from('tenant_settings').select('client_code_prefix, locker_address_line_1').eq('tenant_id', tenantId).single()
+  ])
+
+  if (!plansResponse.data || plansResponse.data.length < 1) {
+    return { success: false, error: 'El administrador aún no ha configurado planes de cobro.' }
+  }
+
+  if (!settingsResponse.data?.client_code_prefix) {
+    return { success: false, error: 'El administrador aún no ha configurado la dirección del casillero.' }
+  }
+
+  // 3. Create user with email auto-confirmed
   const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email,
     password,
@@ -52,7 +66,7 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
 
   const userId = authData.user.id
 
-  // 3. Create Profile
+  // 4. Create Profile
   const { error: profileError } = await adminClient
     .from('profiles')
     .insert({
@@ -66,21 +80,9 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
 
   if (profileError) {
     console.error('Error creating profile:', profileError)
+    // Cleanup auth user? (idealmente)
+    await adminClient.auth.admin.deleteUser(userId)
     return { success: false, error: 'Error creando perfil del usuario' }
-  }
-
-  // 4. Verify Tenant Config (Hard Block)
-  const [{ data: plansCountData }, { data: settingsData }] = await Promise.all([
-    adminClient.from('pricing_plans').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-    adminClient.from('tenant_settings').select('client_code_prefix, locker_address_line_1').eq('tenant_id', tenantId).single()
-  ])
-
-  if (!plansCountData || plansCountData.length < 1) {
-    return { success: false, error: 'El administrador aún no ha configurado planes de cobro.' }
-  }
-
-  if (!settingsData?.client_code_prefix || !settingsData?.locker_address_line_1) {
-    return { success: false, error: 'El administrador aún no ha configurado la dirección del casillero.' }
   }
 
   // 5. Generate Client Code via Postgres RPC
@@ -97,7 +99,10 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
   const clientCode = result.v_code
   const sequenceNumber = result.v_seq
 
-  // 5. Create Client Record
+  // Asignar el primer plan que exista como defecto (los tenants deben tener al menos 1 por la validación del paso 2)
+  const defaultPlanId = plansResponse.data[0].id
+
+  // 6. Create Client Record
   const { error: clientError } = await adminClient
     .from('clients')
     .insert({
@@ -108,7 +113,8 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
       first_name: firstName,
       last_name: lastName,
       full_name: fullName,
-      phone: phone
+      phone: phone,
+      plan_id: defaultPlanId
     })
 
   if (clientError) {

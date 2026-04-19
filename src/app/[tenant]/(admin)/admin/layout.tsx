@@ -8,6 +8,7 @@ import { MobileNav } from '@/components/layout/mobile-nav'
 import { FontSizeSelector } from '@/components/layout/font-size-selector'
 import { Badge } from '@/components/ui/badge'
 import { isTenantExpired, getEffectiveExpiryDate } from '@/lib/utils/tenant-helpers'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default async function AdminDashboardLayout({
   children,
@@ -200,6 +201,7 @@ export default async function AdminDashboardLayout({
              <Settings className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
              Configuración
            </Link>
+           <LogoutButton tenantSlug={tenant} className="flex items-center gap-2 w-full p-2 rounded-xl hover:bg-destructive/10 text-xs font-bold text-muted-foreground hover:text-destructive transition-all group" />
         </div>
       </aside>
 

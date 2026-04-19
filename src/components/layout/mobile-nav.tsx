@@ -26,6 +26,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './theme-toggle'
 import { FontSizeSelector } from './font-size-selector'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 // Mapping of icon names to Lucide components
 const IconMap: Record<string, React.ElementType> = {
@@ -58,6 +60,21 @@ interface MobileNavProps {
 
 export function MobileNav({ title, items, footerItems, logo, extraContent }: MobileNavProps) {
   const [open, setOpen] = React.useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+  
+  const handleItemClick = async (e: React.MouseEvent, item: NavItem) => {
+    if (item.label === 'Cerrar sesión' || item.iconName === 'LogOut') {
+      e.preventDefault()
+      await supabase.auth.signOut()
+      const tenantMatch = window.location.pathname.match(/^\/([^\/]+)/)
+      const tenantSlug = tenantMatch ? tenantMatch[1] : ''
+      router.push(tenantSlug ? `/${tenantSlug}` : '/')
+      router.refresh()
+      return
+    }
+    setOpen(false)
+  }
 
   const renderIcon = (name: string) => {
     const Icon = IconMap[name]
@@ -86,8 +103,8 @@ export function MobileNav({ title, items, footerItems, logo, extraContent }: Mob
             {items.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
+                href={item.label === 'Cerrar sesión' ? '#' : item.href}
+                onClick={(e) => handleItemClick(e, item)}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-foreground transition-all hover:text-primary hover:bg-muted font-medium"
               >
                 {renderIcon(item.iconName)}
@@ -107,8 +124,8 @@ export function MobileNav({ title, items, footerItems, logo, extraContent }: Mob
               {footerItems.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
+                  href={item.label === 'Cerrar sesión' ? '#' : item.href}
+                  onClick={(e) => handleItemClick(e, item)}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary font-medium"
                 >
                   {renderIcon(item.iconName)}

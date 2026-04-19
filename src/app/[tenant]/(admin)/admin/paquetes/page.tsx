@@ -37,6 +37,8 @@ export default async function AdminPaquetesPage({
       total_amount,
       payment_status,
       created_at,
+      tenant_id,
+      client_id,
       clients (
         id,
         client_code,

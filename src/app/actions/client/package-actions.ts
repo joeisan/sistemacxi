@@ -36,6 +36,18 @@ export async function createPreAlert(data: PreAlertData) {
   // Use admin client to bypass RLS for insert
   const adminClient = createAdminClient()
 
+  // 1. Check for duplicate tracking number within the same tenant
+  const { data: existingPackage } = await adminClient
+    .from('packages')
+    .select('id')
+    .eq('tenant_id', data.tenantId)
+    .eq('tracking_number', data.trackingNumber)
+    .single()
+
+  if (existingPackage) {
+    return { success: false, error: 'Este número de tracking ya ha sido registrado o pre-alertado anteriormente.' }
+  }
+
   const { error } = await adminClient
     .from('packages')
     .insert({

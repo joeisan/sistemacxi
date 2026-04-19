@@ -8,6 +8,7 @@ const registerAdminSchema = z.object({
   subdomain: z.string().min(2, "Mínimo 2 caracteres").regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
+  clientCodePrefix: z.string().min(2, "Mínimo 2 caracteres").max(10, "Máximo 10 caracteres").toUpperCase(),
 })
 
 export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
@@ -25,7 +26,7 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
     return { success: false, error: parsed.error.issues[0].message }
   }
 
-  const { businessName, subdomain, email, password } = parsed.data
+  const { businessName, subdomain, email, password, clientCodePrefix } = parsed.data
   const cleanSubdomain = subdomain.toLowerCase()
 
   try {
@@ -63,14 +64,25 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
 
     const tenantId = tenantData.id
 
-    // 3. Crear configuraciones básicas por defecto
+    // 3. Crear configuraciones básicas por defecto (Legacy support)
     await adminClient.from('tenant_settings').insert({
       tenant_id: tenantId,
-      client_code_prefix: businessName.substring(0, 3).toUpperCase(),
+      client_code_prefix: clientCodePrefix || businessName.substring(0, 3).toUpperCase(),
       locker_address_line_1: "123 Trial Way, Miami",
       locker_city_state_postal: "Miami, FL 33101",
       locker_country: "USA",
       locker_phone: "305-000-0000"
+    })
+
+    // 3.5 Crear la dirección de sede principal inicial
+    await adminClient.from('tenant_addresses').insert({
+      tenant_id: tenantId,
+      label: "Bodega Principal",
+      address_line_1: "123 Trial Way",
+      city_state_zip: "Miami, FL 33101",
+      country: "USA",
+      phone: "305-000-0000",
+      is_default: true
     })
 
     // 4. Crear usuario Admin en Auth

@@ -81,7 +81,9 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [], isReadOn
 
       if (result.success) {
         toast.success('¡Paquete registrado con éxito!')
-        router.push('/admin/paquetes')
+        const tenantMatch = window.location.pathname.match(/^\/([^\/]+)/)
+        const currentTenantSlug = tenantMatch ? tenantMatch[1] : ''
+        router.push(currentTenantSlug ? `/${currentTenantSlug}/admin/paquetes` : '/admin/paquetes')
       } else {
         toast.error('Error', { description: result.error })
       }
