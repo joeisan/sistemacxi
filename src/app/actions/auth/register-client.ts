@@ -75,7 +75,7 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
     adminClient.from('tenant_settings').select('client_code_prefix, locker_address_line_1').eq('tenant_id', tenantId).single()
   ])
 
-  if (!plansCountData || plansCountData < 1) {
+  if (!plansCountData || plansCountData.length < 1) {
     return { success: false, error: 'El administrador aún no ha configurado planes de cobro.' }
   }
 
