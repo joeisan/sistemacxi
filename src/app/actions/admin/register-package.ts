@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
@@ -15,6 +16,11 @@ interface RegisterPackageData {
 
 export async function registerPackage(data: RegisterPackageData) {
   try {
+    const auth = await requireTenantAdmin(data.tenantId)
+    if (!auth.ok) {
+      return { success: false, error: auth.error }
+    }
+
     const adminClient = createAdminClient()
 
     // 0. Verificar si el tenant está expirado o inactivo
@@ -56,7 +62,7 @@ export async function registerPackage(data: RegisterPackageData) {
     revalidatePath('/', 'layout') 
     
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Excepción en registerPackage:', err)
     return { success: false, error: 'Error interno del servidor. Intenta de nuevo.' }
   }

@@ -3,8 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from 'zod'
-import { headers } from 'next/headers'
-import { getRootDomain } from '@/lib/utils/host'
 
 const loginSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
@@ -47,14 +45,6 @@ export async function loginUser(data: z.infer<typeof loginSchema>) {
   }
 
   // 3. Determine redirect based on role
-  const host = (await headers()).get('host') || ''
-  const currentRoot = getRootDomain(host)
-  const parts = host.split('.')
-
-  // Check if we are already on a subdomain (ignoring www)
-  const isOnSubdomain = (parts.length > 2 && !host.startsWith('www.')) || 
-                        (host.includes('localhost') && parts.length > 1 && !host.startsWith('localhost'))
-
   let redirectPath = '/'
 
   if (profile.role === 'super_admin') {

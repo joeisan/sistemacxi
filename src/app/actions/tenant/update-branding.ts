@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 interface BrandingData {
@@ -12,9 +13,12 @@ interface BrandingData {
 }
 
 export async function updateBranding(data: BrandingData) {
-  const supabase = createAdminClient()
+  const auth = await requireTenantAdmin(data.tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
 
-  console.log('Actualizando Branding:', data)
+  const supabase = createAdminClient()
 
   // 1. Actualizar Tenant Logo si existe
   if (data.logoUrl !== undefined) {

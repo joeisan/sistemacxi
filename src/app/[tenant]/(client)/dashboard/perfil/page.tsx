@@ -24,12 +24,18 @@ export default async function ClientProfilePage({
   // Fetch client details
   const { data: clientData } = await supabase
     .from('clients')
-    .select('full_name, profiles(full_name)')
+    .select('full_name')
     .eq('profile_id', user.id)
     .eq('tenant_id', tenantData.id)
+    .maybeSingle()
+
+  const { data: profileData } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
     .single()
 
-  const fullName = clientData?.full_name || (clientData?.profiles as any)?.full_name || 'Desconocido'
+  const fullName = clientData?.full_name || profileData?.full_name || 'Desconocido'
 
   return (
     <div className="flex flex-col gap-6">

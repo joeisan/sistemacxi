@@ -6,8 +6,16 @@ import { Package, ExternalLink, History, PackageSearch } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { AddPackageDialog } from '@/components/tenant/add-package-dialog'
-import { DeletePreAlertButton } from '@/components/tenant/delete-pre-alert-button'
 import { DataTableResponsive, ColumnDef } from '@/components/ui/data-table-responsive'
+
+interface ClientPackageRow {
+  id: string
+  created_at: string
+  description: string | null
+  tracking_number: string | null
+  courier_name: string | null
+  status: string
+}
 
 export default async function ClientPaquetesPage({
   params,
@@ -62,7 +70,7 @@ export default async function ClientPaquetesPage({
 
   if (error) console.error(`[DEBUG_PAQUETES] Error:`, error)
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<ClientPackageRow>[] = [
     {
       header: 'Fecha',
       render: (pkg) => (
@@ -137,9 +145,6 @@ export default async function ClientPaquetesPage({
           subtitle: (pkg) => `Tracking: ${pkg.tracking_number || 'No asignado'}`,
           badge: (pkg) => <StatusBadge status={pkg.status} />
         }}
-        actions={(pkg) => (
-          pkg.status === 'pre-alertado' ? <DeletePreAlertButton packageId={pkg.id} /> : null
-        )}
         emptyMessage="Aún no has registrado paquetes."
       />
 

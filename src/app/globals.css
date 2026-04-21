@@ -48,6 +48,8 @@
 }
 
 :root {
+  --font-sans: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
   --background: oklch(0.99 0 0);
   --foreground: oklch(0.2 0.02 250);
   --card: oklch(1 0 0);

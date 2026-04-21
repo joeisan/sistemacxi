@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPin, Package, ArrowRight, CreditCard, Zap } from 'lucide-react'
+import { MapPin, Package, ArrowRight, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound, redirect } from 'next/navigation'
@@ -10,6 +10,20 @@ import { DashboardAlert } from '@/components/tenant/dashboard-alert'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+
+interface TenantAlertItem {
+  id: string
+  type: string
+  message: string
+}
+
+interface AddressHub {
+  label: string
+  address_line_1: string
+  city_state_zip: string
+  country: string
+  phone: string
+}
 
 export default async function ClientDashboardPage({
   params,
@@ -37,6 +51,12 @@ export default async function ClientDashboardPage({
     .eq('tenant_id', tenantData.id)
     .single()
 
+  const { data: profileInfo } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single()
+
   // Fetch totals
   const { data: packages } = await supabase
     .from('packages')
@@ -50,7 +70,7 @@ export default async function ClientDashboardPage({
   const activePackages = packages?.filter(p => p.status !== 'entregado').length || 0
 
   // Handle name for welcome
-  const firstName = clientInfo?.full_name?.split(' ')[0] || 'Cliente'
+  const firstName = (clientInfo?.full_name || profileInfo?.full_name || 'Cliente').split(' ')[0]
 
   // ... (rest of the fetching stays same)
 
@@ -78,14 +98,11 @@ export default async function ClientDashboardPage({
     phone: '+1 7866185090'
   }] : hubs
 
-  const rawPlan = (clientInfo as any)?.pricing_plans
-  const planInfo = Array.isArray(rawPlan) ? rawPlan[0] : (rawPlan || null)
-
   return (
     <div className="flex flex-col gap-6">
       {/* Alertas dinámicas */}
       <div className="flex flex-col gap-3">
-        {tenantAlerts && tenantAlerts.map((alert: any) => (
+        {tenantAlerts && tenantAlerts.map((alert: TenantAlertItem) => (
           <DashboardAlert 
             key={alert.id}
             id={alert.id}
@@ -102,7 +119,7 @@ export default async function ClientDashboardPage({
       </div>
 
       <LockerAddressCard 
-        hubs={fallbackHubs as any} 
+        hubs={fallbackHubs as AddressHub[]} 
         clientCode={clientInfo?.client_code || '---'} 
         enterpriseName={tenantData.name} 
       />

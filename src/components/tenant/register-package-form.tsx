@@ -27,7 +27,7 @@ interface Courier {
   name: string
 }
 
-export function RegisterPackageForm({ tenantId, clients, couriers = [], isReadOnly }: { tenantId: string, clients: Client[], couriers?: Courier[], isReadOnly?: boolean }) {
+export function RegisterPackageForm({ tenantId, tenantSlug, clients, couriers = [], isReadOnly }: { tenantId: string, tenantSlug: string, clients: Client[], couriers?: Courier[], isReadOnly?: boolean }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -81,9 +81,7 @@ export function RegisterPackageForm({ tenantId, clients, couriers = [], isReadOn
 
       if (result.success) {
         toast.success('¡Paquete registrado con éxito!')
-        const tenantMatch = window.location.pathname.match(/^\/([^\/]+)/)
-        const currentTenantSlug = tenantMatch ? tenantMatch[1] : ''
-        router.push(currentTenantSlug ? `/${currentTenantSlug}/admin/paquetes` : '/admin/paquetes')
+        router.push(`/${tenantSlug}/admin/paquetes`)
       } else {
         toast.error('Error', { description: result.error })
       }

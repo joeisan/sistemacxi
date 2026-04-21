@@ -3,6 +3,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { isTenantExpired } from '@/lib/utils/tenant-helpers'
 
 const createClientSchema = z.object({
@@ -16,6 +17,16 @@ const createClientSchema = z.object({
 })
 
 export async function createClientByAdmin(data: z.infer<typeof createClientSchema>) {
+  const parsed = createClientSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const auth = await requireTenantAdmin(parsed.data.tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
   
@@ -26,11 +37,6 @@ export async function createClientByAdmin(data: z.infer<typeof createClientSchem
   const adminClient = createSupabaseClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   })
-
-  const parsed = createClientSchema.safeParse(data)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message }
-  }
 
   const { firstName, lastName, email, phone, password, tenantId, planId } = parsed.data
   const fullName = `${firstName} ${lastName}`
@@ -125,8 +131,9 @@ export async function createClientByAdmin(data: z.infer<typeof createClientSchem
     revalidatePath('/[tenant]/admin/clientes', 'page')
     
     return { success: true, clientCode }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error interno del servidor.'
     console.error('Error creating client:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: message }
   }
 }

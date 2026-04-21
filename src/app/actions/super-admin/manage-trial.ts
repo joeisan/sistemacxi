@@ -1,9 +1,15 @@
 'use server'
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { requireSuperAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 export async function extendTrial(tenantId: string) {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
   const adminClient = createSupabaseClient(url, serviceKey)
@@ -30,12 +36,18 @@ export async function extendTrial(tenantId: string) {
     if (error) throw error
     revalidatePath('/super-admin/tenants')
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error inesperado'
+    return { success: false, error: message }
   }
 }
 
 export async function activateFullPortal(tenantId: string) {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
   const adminClient = createSupabaseClient(url, serviceKey)
@@ -54,7 +66,8 @@ export async function activateFullPortal(tenantId: string) {
     if (error) throw error
     revalidatePath('/super-admin/tenants')
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err.message }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error inesperado'
+    return { success: false, error: message }
   }
 }

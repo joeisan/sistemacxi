@@ -1,9 +1,15 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireSuperAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleTenantStatus(tenantId: string, currentStatus: boolean) {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
   console.log(`--- CAMBIANDO ESTADO TENANT: ${tenantId} A ${!currentStatus} ---`)
@@ -23,6 +29,11 @@ export async function toggleTenantStatus(tenantId: string, currentStatus: boolea
 }
 
 export async function sendTenantAlert(tenantId: string, message: string, type: string = 'info') {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
   console.log(`--- ENVIANDO ALERTA ---`)

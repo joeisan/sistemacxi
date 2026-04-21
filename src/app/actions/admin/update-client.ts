@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 interface UpdateClientData {
@@ -14,7 +15,20 @@ interface UpdateClientData {
 export async function updateClient(data: UpdateClientData) {
   const adminClient = createAdminClient()
 
-  console.log(`--- ACTUALIZANDO CLIENTE: ${data.id} ---`)
+  const { data: client, error: clientError } = await adminClient
+    .from('clients')
+    .select('tenant_id')
+    .eq('id', data.id)
+    .single()
+
+  if (clientError || !client) {
+    return { success: false, error: 'Cliente no encontrado.' }
+  }
+
+  const auth = await requireTenantAdmin(client.tenant_id)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
 
   const { error } = await adminClient
     .from('clients')

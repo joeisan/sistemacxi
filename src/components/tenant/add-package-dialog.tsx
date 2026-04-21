@@ -65,7 +65,9 @@ export function AddPackageDialog({
         setOpen(false)
         onSuccess?.()
       } else {
-        toast.error('Error al registrar el paquete')
+        toast.error('Error al registrar el paquete', {
+          description: result.error,
+        })
       }
     } catch (err) {
       toast.error('Error de red')

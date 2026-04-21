@@ -28,7 +28,7 @@ export async function requestUpgrade(formData: FormData) {
     if (error) throw error
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error requesting upgrade:', error)
     return { success: false, error: 'Ocurrió un error. Intenta de nuevo más tarde.' }
   }

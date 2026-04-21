@@ -35,12 +35,27 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
 
   // 2. Verify Tenant Config (Hard Block) BEFORE creating users
   const [plansResponse, settingsResponse] = await Promise.all([
-    adminClient.from('pricing_plans').select('id').eq('tenant_id', tenantId).limit(1),
+    adminClient
+      .from('pricing_plans')
+      .select('id, is_default')
+      .eq('tenant_id', tenantId)
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: true }),
     adminClient.from('tenant_settings').select('client_code_prefix, locker_address_line_1').eq('tenant_id', tenantId).single()
   ])
 
+  if (plansResponse.error) {
+    console.error('Error loading pricing plans:', plansResponse.error)
+    return { success: false, error: 'No se pudieron validar los planes de cobro.' }
+  }
+
   if (!plansResponse.data || plansResponse.data.length < 1) {
     return { success: false, error: 'El administrador aún no ha configurado planes de cobro.' }
+  }
+
+  if (settingsResponse.error) {
+    console.error('Error loading tenant settings:', settingsResponse.error)
+    return { success: false, error: 'No se pudo validar la configuración del casillero.' }
   }
 
   if (!settingsResponse.data?.client_code_prefix) {
@@ -75,7 +90,8 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
       email: email,
       full_name: fullName,
       phone: phone,
-      role: 'client'
+      role: 'client',
+      is_active: true,
     })
 
   if (profileError) {
@@ -100,7 +116,7 @@ export async function registerClient(data: z.infer<typeof registerSchema>) {
   const sequenceNumber = result.v_seq
 
   // Asignar el primer plan que exista como defecto (los tenants deben tener al menos 1 por la validación del paso 2)
-  const defaultPlanId = plansResponse.data[0].id
+  const defaultPlanId = plansResponse.data.find((plan) => plan.is_default)?.id || plansResponse.data[0].id
 
   // 6. Create Client Record
   const { error: clientError } = await adminClient

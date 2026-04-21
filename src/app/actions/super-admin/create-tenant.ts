@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { requireSuperAdmin } from '@/lib/auth/action-auth'
 import { z } from 'zod'
 
 const addTenantSchema = z.object({
@@ -31,21 +31,12 @@ const addTenantSchema = z.object({
 })
 
 export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>) {
-  const supabase = await createClient()
-
-  console.log('--- INICIANDO CREACIÓN DE TENANT ---')
-  console.log('Datos recibidos:', data)
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
-  console.log('Usuario actual:', user?.id, 'Error auth:', userError)
-
-  if (userError || !user) {
-    console.error('Sesión expirada o usuario no autenticado')
-    return { success: false, error: 'Sesión expirada.' }
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
   }
 
   const parsed = addTenantSchema.safeParse(data)
-  console.log('Validación Zod:', parsed.success ? 'OK' : parsed.error.issues)
   if (!parsed.success) return { success: false, error: 'Datos inválidos.' }
 
   const {
@@ -88,7 +79,6 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
   console.log('Tenant creado con ID:', tenantId)
 
   // 2. Insertar Settings
-  console.log('Insertando settings...')
   const { error: settingsError } = await adminClient
     .from('tenant_settings')
     .insert({
@@ -101,12 +91,11 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
     })
 
   if (settingsError) {
-    console.error('Error Settings:', settingsError)
-    // No interrumpimos el flujo principal por esto, pero lo logueamos
+    await adminClient.from('tenants').delete().eq('id', tenantId)
+    return { success: false, error: `Error Settings: ${settingsError.message}` }
   }
 
   // 3. Crear Admin User en Auth
-  console.log('Creando usuario en Supabase Auth...')
   const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email: adminEmail,
     password: adminPassword,
@@ -120,10 +109,9 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
 
   if (authError || !authData.user) {
     console.error('Error Auth Admin:', authError)
+    await adminClient.from('tenants').delete().eq('id', tenantId)
     return { success: false, error: `Error Auth Admin: ${authError?.message}` }
   }
-
-  console.log('Usuario Auth creado:', authData.user.id)
 
   // 4. Crear Perfil para el nuevo Admin
   const { error: adminProfileError } = await adminClient
@@ -138,9 +126,9 @@ export async function createTenantAndAdmin(data: z.infer<typeof addTenantSchema>
 
   if (adminProfileError) {
     console.error('Error al crear perfil del Admin:', adminProfileError)
+    await adminClient.auth.admin.deleteUser(authData.user.id)
+    await adminClient.from('tenants').delete().eq('id', tenantId)
     return { success: false, error: `Error Perfil: ${adminProfileError.message}` }
   }
-
-  console.log('--- CREACIÓN EXITOSA ---')
   return { success: true }
 }

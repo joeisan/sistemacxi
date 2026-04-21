@@ -53,6 +53,7 @@ export default async function NewPackagePage({
           <CardContent>
             <RegisterPackageForm 
                 tenantId={tenantData.id} 
+                tenantSlug={tenant}
                 clients={clients || []}
                 couriers={couriers || []}
                 isReadOnly={isReadOnly}

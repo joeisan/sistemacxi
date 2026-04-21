@@ -1,7 +1,7 @@
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Home, MapPin, Package, Bell, User, LogOut, ShieldAlert, CreditCard, ChevronRight, Zap } from 'lucide-react'
+import { Home, MapPin, Package, Bell, User, ShieldAlert, CreditCard, ChevronRight, Zap } from 'lucide-react'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileNav } from '@/components/layout/mobile-nav'
 import { FontSizeSelector } from '@/components/layout/font-size-selector'
@@ -31,8 +31,9 @@ export default async function ClientDashboardLayout({
   // 1. Fetch client info
   const { data: clientInfo } = await supabase
     .from('clients')
-    .select('plan_id')
+    .select('plan_id, full_name')
     .eq('profile_id', user.id)
+    .eq('tenant_id', tenantData.id)
     .single()
 
   let planInfo = null
@@ -115,14 +116,13 @@ export default async function ClientDashboardLayout({
   )
 
   // 3. Fetch client full name for display (Refined with tenant filter and profile join)
-  const { data: profileInfo, error: profileError } = await supabase
-    .from('clients')
-    .select('full_name, profiles(full_name)')
-    .eq('profile_id', user.id)
-    .eq('tenant_id', tenantData.id)
+  const { data: profileInfo } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
     .single()
 
-  const displayName = profileInfo?.full_name || (profileInfo?.profiles as any)?.full_name || user.email
+  const displayName = clientInfo?.full_name || profileInfo?.full_name || user.email
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40 md:flex-row">
@@ -134,7 +134,7 @@ export default async function ClientDashboardLayout({
             ) : (
               <div className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">{tenantData.name}</div>
             )}
-            <div className="font-bold text-base text-foreground truncate tracking-tight">{profileInfo?.full_name || 'Usuario'}</div>
+            <div className="font-bold text-base text-foreground truncate tracking-tight">{displayName || 'Usuario'}</div>
             <div className="text-[10px] text-muted-foreground truncate">{user.email}</div>
         </div>
         

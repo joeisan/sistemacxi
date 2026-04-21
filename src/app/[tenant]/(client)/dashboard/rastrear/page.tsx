@@ -32,7 +32,8 @@ export default async function ClientRastrearPage({
   return (
     <TrackingSearchClient 
       tenantId={tenantData.id} 
-      clientId={clientData?.id} 
+      clientId={clientData?.id}
+      tenantSlug={tenant}
     />
   )
 }

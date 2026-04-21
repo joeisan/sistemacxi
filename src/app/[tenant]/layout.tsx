@@ -1,6 +1,5 @@
 import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { notFound } from 'next/navigation'
-import { TrialExpiredForm } from '@/components/tenant/trial-expired-form'
 
 export default async function TenantLayout({
   children,
@@ -17,11 +16,6 @@ export default async function TenantLayout({
   if (!tenantData) {
     notFound()
   }
-
-  // --- TRIAL GUARD ---
-  const isExpired = tenantData.is_trial && 
-                    tenantData.trial_ends_at && 
-                    new Date() > new Date(tenantData.trial_ends_at)
 
   // Inject the branding colors into the CSS variables.
   const styleVariables = {

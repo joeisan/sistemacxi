@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 interface BillingUpdateData {
@@ -15,7 +16,20 @@ interface BillingUpdateData {
 export async function updatePackageBilling(data: BillingUpdateData) {
   const adminClient = createAdminClient()
 
-  console.log(`--- ACTUALIZANDO FACTURACIÓN PAQUETE: ${data.packageId} ---`)
+  const { data: pkg, error: packageError } = await adminClient
+    .from('packages')
+    .select('tenant_id')
+    .eq('id', data.packageId)
+    .single()
+
+  if (packageError || !pkg) {
+    return { success: false, error: 'Paquete no encontrado.' }
+  }
+
+  const auth = await requireTenantAdmin(pkg.tenant_id)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
 
   const { error } = await adminClient
     .from('packages')
@@ -50,12 +64,27 @@ export async function registerPayment(data: {
 }) {
     const adminClient = createAdminClient()
 
+    const { data: pkg, error: packageError } = await adminClient
+      .from('packages')
+      .select('tenant_id, client_id')
+      .eq('id', data.packageId)
+      .single()
+
+    if (packageError || !pkg) {
+      return { success: false, error: 'Paquete no encontrado.' }
+    }
+
+    const auth = await requireTenantAdmin(pkg.tenant_id)
+    if (!auth.ok) {
+      return { success: false, error: auth.error }
+    }
+
     // 1. Record the payment
     const { error: paymentError } = await adminClient
         .from('payments')
         .insert({
-            tenant_id: data.tenantId,
-            client_id: data.clientId,
+            tenant_id: pkg.tenant_id,
+            client_id: pkg.client_id,
             package_id: data.packageId,
             amount: data.amount,
             method: data.method,
@@ -65,12 +94,12 @@ export async function registerPayment(data: {
     if (paymentError) return { success: false, error: paymentError.message }
 
     // 2. Mark package as paid
-    const { error: packageError } = await adminClient
+    const { error: packageUpdateError } = await adminClient
         .from('packages')
         .update({ payment_status: 'paid' })
         .eq('id', data.packageId)
 
-    if (packageError) return { success: false, error: packageError.message }
+    if (packageUpdateError) return { success: false, error: packageUpdateError.message }
 
     revalidatePath('/admin/paquetes')
     revalidatePath('/dashboard/paquetes')

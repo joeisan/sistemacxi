@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 interface TenantAddressData {
@@ -15,6 +16,11 @@ interface TenantAddressData {
 }
 
 export async function upsertTenantAddress(data: TenantAddressData) {
+  const auth = await requireTenantAdmin(data.tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
   console.log(`--- GESTIONANDO DIRECCIÓN TENANT: ${data.tenantId} ---`)
@@ -34,6 +40,16 @@ export async function upsertTenantAddress(data: TenantAddressData) {
     await adminClient
       .from('tenant_addresses')
       .update({ is_default: false })
+      .eq('tenant_id', data.tenantId)
+
+    await adminClient
+      .from('tenant_settings')
+      .update({
+        locker_address_line_1: data.addressLine1,
+        locker_city_state_postal: data.cityStateZip,
+        locker_country: data.country,
+        locker_phone: data.phone,
+      })
       .eq('tenant_id', data.tenantId)
   }
 
@@ -56,10 +72,16 @@ export async function upsertTenantAddress(data: TenantAddressData) {
 
   revalidatePath('/admin/configuracion')
   revalidatePath('/dashboard')
+  revalidatePath('/', 'layout')
   return { success: true }
 }
 
 export async function deleteTenantAddress(addressId: string, tenantId: string) {
+  const auth = await requireTenantAdmin(tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
   
   const { error } = await adminClient
@@ -73,5 +95,6 @@ export async function deleteTenantAddress(addressId: string, tenantId: string) {
 
   revalidatePath('/admin/configuracion')
   revalidatePath('/dashboard')
+  revalidatePath('/', 'layout')
   return { success: true }
 }

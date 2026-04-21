@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 interface TenantSettingsUpdate {
@@ -10,12 +11,27 @@ interface TenantSettingsUpdate {
   suffix?: string
 }
 
+interface TenantSettingsDbUpdate {
+  current_sequence?: number
+  client_code_prefix?: string
+  client_code_suffix?: string
+}
+
+interface TenantBrandingUpdate {
+  name: string
+  primary_color?: string
+  secondary_color?: string
+}
+
 export async function updateTenantSettings(data: TenantSettingsUpdate) {
+  const auth = await requireTenantAdmin(data.tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
-  console.log(`--- ACTUALIZANDO SETTINGS PARA TENANT: ${data.tenantId} ---`)
-
-  const updates: any = {}
+  const updates: TenantSettingsDbUpdate = {}
   
   if (data.newSequence !== undefined) {
     // Si el usuario quiere que el siguiente sea el 1000, debemos poner current_sequence = 999
@@ -40,9 +56,14 @@ export async function updateTenantSettings(data: TenantSettingsUpdate) {
 }
 
 export async function updateTenantBranding(tenantId: string, name: string, primaryColor?: string, secondaryColor?: string) {
+  const auth = await requireTenantAdmin(tenantId)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
-  const updates: any = { name }
+  const updates: TenantBrandingUpdate = { name }
   if (primaryColor) updates.primary_color = primaryColor
   if (secondaryColor) updates.secondary_color = secondaryColor
 

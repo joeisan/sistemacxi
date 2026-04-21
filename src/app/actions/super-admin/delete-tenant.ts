@@ -1,9 +1,15 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireSuperAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 export async function deleteTenant(tenantId: string) {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const supabase = createAdminClient()
 
   // 1. Obtener datos del tenant antes de borrar (para logs o limpieza manual si es necesario)

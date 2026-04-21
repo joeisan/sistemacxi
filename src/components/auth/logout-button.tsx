@@ -1,8 +1,8 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { logout } from '@/app/actions/auth/logout'
 import { LogOut } from 'lucide-react'
+import { useTransition } from 'react'
 import { ReactNode } from 'react'
 
 export function LogoutButton({ 
@@ -14,18 +14,17 @@ export function LogoutButton({
   className?: string,
   children?: ReactNode
 }) {
-  const router = useRouter()
-  const supabase = createClient()
+  const [isPending, startTransition] = useTransition()
 
-  const handleLogout = async (e: React.MouseEvent) => {
+  const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault()
-    await supabase.auth.signOut()
-    router.push(tenantSlug ? `/${tenantSlug}` : '/')
-    router.refresh()
+    startTransition(async () => {
+      await logout(tenantSlug)
+    })
   }
 
   return (
-    <button onClick={handleLogout} className={className}>
+    <button onClick={handleLogout} className={className} disabled={isPending}>
       {children || (
         <>
           <LogOut className="h-4 w-4" />

@@ -12,6 +12,10 @@ interface PreAlertData {
   description?: string
 }
 
+function normalizeTrackingNumber(value: string) {
+  return value.trim().toUpperCase()
+}
+
 export async function createPreAlert(data: PreAlertData) {
   // Verify the user is authenticated first
   const supabase = await createClient()
@@ -20,6 +24,8 @@ export async function createPreAlert(data: PreAlertData) {
   if (!user) {
     return { success: false, error: 'No autenticado' }
   }
+
+  const normalizedTrackingNumber = normalizeTrackingNumber(data.trackingNumber)
 
   // Verify this client belongs to the authenticated user
   const { data: clientInfo } = await supabase
@@ -41,7 +47,7 @@ export async function createPreAlert(data: PreAlertData) {
     .from('packages')
     .select('id')
     .eq('tenant_id', data.tenantId)
-    .eq('tracking_number', data.trackingNumber)
+    .eq('tracking_number', normalizedTrackingNumber)
     .single()
 
   if (existingPackage) {
@@ -53,7 +59,7 @@ export async function createPreAlert(data: PreAlertData) {
     .insert({
       tenant_id: data.tenantId,
       client_id: data.clientId,
-      tracking_number: data.trackingNumber,
+      tracking_number: normalizedTrackingNumber,
       courier_name: data.courierName,
       description: data.description || '',
       status: 'pre-alertado'
@@ -68,41 +74,6 @@ export async function createPreAlert(data: PreAlertData) {
   return { success: true }
 }
 
-export async function deletePreAlert(packageId: string) {
-  // Verify the user is authenticated first
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { success: false, error: 'No autenticado' }
-  }
-
-  // Use admin client but verify ownership
-  const adminClient = createAdminClient()
-
-  // Verify the package belongs to this user and is pre-alertado
-  const { data: pkg } = await adminClient
-    .from('packages')
-    .select('id, clients!inner(profile_id)')
-    .eq('id', packageId)
-    .eq('status', 'pre-alertado')
-    .single()
-
-  if (!pkg || (pkg as any).clients?.profile_id !== user.id) {
-    return { success: false, error: 'Paquete no encontrado o no autorizado' }
-  }
-
-  const { error } = await adminClient
-    .from('packages')
-    .delete()
-    .eq('id', packageId)
-    .eq('status', 'pre-alertado')
-
-  if (error) {
-    console.error('Error deleting pre-alert:', error)
-    return { success: false, error: error.message }
-  }
-
-  revalidatePath('/[tenant]/dashboard/paquetes', 'page')
-  return { success: true }
+export async function deletePreAlert() {
+  return { success: false, error: 'Los paquetes pre-alertados no pueden eliminarse desde la cuenta del cliente.' }
 }

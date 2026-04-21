@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireSuperAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 /**
@@ -8,6 +9,11 @@ import { revalidatePath } from 'next/cache'
  * Restricted to Super Admins (enforced via Supabase Service Role usage and server-side checks).
  */
 export async function deleteUserGlobal(userId: string) {
+  const auth = await requireSuperAdmin()
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
+  }
+
   const adminClient = createAdminClient()
 
   console.log(`--- INITIATING GLOBAL USER DELETION: ${userId} ---`)
@@ -36,8 +42,9 @@ export async function deleteUserGlobal(userId: string) {
     console.log(`--- USER ${userId} DELETED SUCCESSFULLY ---`)
     revalidatePath('/super-admin/usuarios')
     return { success: true }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error inesperado'
     console.error('Unexpected error during user deletion:', err)
-    return { success: false, error: err.message || 'Error inesperado' }
+    return { success: false, error: message }
   }
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { registerAdmin } from "@/app/actions/auth/register-admin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,11 +18,11 @@ export default function RegisterPage() {
     email: "",
     password: "",
     clientCodePrefix: "",
+    confirmClientCodePrefix: "",
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
 
   // Get root domain dynamically
   const getRootDomainLocal = () => {
@@ -45,7 +44,7 @@ export default function RegisterPage() {
       } else {
         setError(res.error || "Error al registrar")
       }
-    } catch (err: any) {
+    } catch {
       setError("Error de conexión. Intenta de nuevo.")
     } finally {
       setLoading(false)
@@ -73,14 +72,14 @@ export default function RegisterPage() {
                 {rootDomain}/{formData.subdomain}/admin
               </p>
           </div>
-          <a 
+          <Link 
             href={`/${formData.subdomain}/admin`}
             className="block"
           >
             <Button className="w-full h-12 font-bold text-lg rounded-full">
               Ir a mi Panel <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-          </a>
+          </Link>
         </Card>
       </div>
     )
@@ -150,7 +149,8 @@ export default function RegisterPage() {
                         setFormData({
                           ...formData, 
                           businessName: newName,
-                          clientCodePrefix: formData.clientCodePrefix ? formData.clientCodePrefix : newName.substring(0, 3).toUpperCase()
+                          clientCodePrefix: formData.clientCodePrefix ? formData.clientCodePrefix : newName.substring(0, 3).toUpperCase(),
+                          confirmClientCodePrefix: formData.confirmClientCodePrefix ? formData.confirmClientCodePrefix : newName.substring(0, 3).toUpperCase()
                         })
                       }}
                       disabled={loading}
@@ -166,6 +166,20 @@ export default function RegisterPage() {
                       required 
                       value={formData.clientCodePrefix}
                       onChange={(e) => setFormData({...formData, clientCodePrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
+                      disabled={loading}
+                      maxLength={10}
+                      className="h-11 font-mono uppercase"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmClientCodePrefix">Confirmar Código de Casilleros</Label>
+                    <Input
+                      id="confirmClientCodePrefix"
+                      placeholder="Repite el código"
+                      required
+                      value={formData.confirmClientCodePrefix}
+                      onChange={(e) => setFormData({...formData, confirmClientCodePrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')})}
                       disabled={loading}
                       maxLength={10}
                       className="h-11 font-mono uppercase"

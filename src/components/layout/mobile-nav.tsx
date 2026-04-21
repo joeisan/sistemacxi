@@ -26,8 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './theme-toggle'
 import { FontSizeSelector } from './font-size-selector'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { logout } from '@/app/actions/auth/logout'
 
 // Mapping of icon names to Lucide components
 const IconMap: Record<string, React.ElementType> = {
@@ -60,17 +59,13 @@ interface MobileNavProps {
 
 export function MobileNav({ title, items, footerItems, logo, extraContent }: MobileNavProps) {
   const [open, setOpen] = React.useState(false)
-  const router = useRouter()
-  const supabase = createClient()
   
   const handleItemClick = async (e: React.MouseEvent, item: NavItem) => {
     if (item.label === 'Cerrar sesión' || item.iconName === 'LogOut') {
       e.preventDefault()
-      await supabase.auth.signOut()
       const tenantMatch = window.location.pathname.match(/^\/([^\/]+)/)
       const tenantSlug = tenantMatch ? tenantMatch[1] : ''
-      router.push(tenantSlug ? `/${tenantSlug}` : '/')
-      router.refresh()
+      await logout(tenantSlug || undefined)
       return
     }
     setOpen(false)

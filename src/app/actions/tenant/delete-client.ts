@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireTenantAdmin } from '@/lib/auth/action-auth'
 import { revalidatePath } from 'next/cache'
 
 export async function deleteClient(clientId: string, tenantSubdomain: string) {
@@ -9,12 +10,17 @@ export async function deleteClient(clientId: string, tenantSubdomain: string) {
   // 1. Obtener el perfil asociado al cliente para borrarlo también si es necesario
   const { data: client, error: fetchError } = await supabase
     .from('clients')
-    .select('profile_id')
+    .select('profile_id, tenant_id')
     .eq('id', clientId)
     .single()
 
   if (fetchError || !client) {
     return { success: false, error: 'Cliente no encontrado.' }
+  }
+
+  const auth = await requireTenantAdmin(client.tenant_id)
+  if (!auth.ok) {
+    return { success: false, error: auth.error }
   }
 
   // 2. Borrar el cliente. 

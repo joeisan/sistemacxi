@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, Package, ExternalLink, History, Plus, Trash2, Info } from 'lucide-react'
 import { AddPackageDialog } from './add-package-dialog'
 import Script from 'next/script'
+import Link from 'next/link'
 
 interface TrackingSearchClientProps {
   tenantId: string
   clientId?: string
+  tenantSlug: string
 }
 
 interface HistoricalSearch {
@@ -20,25 +22,31 @@ interface HistoricalSearch {
 
 declare global {
   interface Window {
-    YQ399: any
+    YQ399?: {
+      ExternalTrack: (payload: { L: string; Num: string }) => void
+    }
   }
 }
 
-export function TrackingSearchClient({ tenantId, clientId }: TrackingSearchClientProps) {
+export function TrackingSearchClient({ tenantId, clientId, tenantSlug }: TrackingSearchClientProps) {
   const [trackingNumber, setTrackingNumber] = useState('')
-  const [history, setHistory] = useState<HistoricalSearch[]>([])
-
-  // Cargar historial desde localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('tracking_history')
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved))
-      } catch (e) {
-        console.error("Error parsing history", e)
-      }
+  const [history, setHistory] = useState<HistoricalSearch[]>(() => {
+    if (typeof window === 'undefined') {
+      return []
     }
-  }, [])
+
+    const saved = localStorage.getItem('tracking_history')
+    if (!saved) {
+      return []
+    }
+
+    try {
+      return JSON.parse(saved) as HistoricalSearch[]
+    } catch (e) {
+      console.error('Error parsing history', e)
+      return []
+    }
+  })
 
   const saveToHistory = (num: string) => {
     const newHistory = [
@@ -207,7 +215,7 @@ export function TrackingSearchClient({ tenantId, clientId }: TrackingSearchClien
                     </div>
                     <div className="space-y-2">
                         <p className="font-bold text-foreground">3. Pre-alerta</p>
-                        <p>Usa el botón **"Pre-alertar"** para informarnos de tu paquete antes de que llegue.</p>
+                        <p>Usa el botón &quot;Pre-alertar&quot; para informarnos de tu paquete antes de que llegue.</p>
                     </div>
                 </CardContent>
             </Card>
@@ -219,7 +227,7 @@ export function TrackingSearchClient({ tenantId, clientId }: TrackingSearchClien
                 <CardContent className="text-xs text-muted-foreground space-y-4">
                    <p>Revisa el estado de tus paquetes que ya han sido procesados en bodega.</p>
                    <Button variant="secondary" className="w-full text-xs font-bold" asChild>
-                      <a href="/dashboard/paquetes">Ver Listado Completo</a>
+                      <Link href={`/${tenantSlug}/dashboard/paquetes`}>Ver Listado Completo</Link>
                    </Button>
                 </CardContent>
             </Card>

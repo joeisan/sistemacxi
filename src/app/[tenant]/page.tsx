@@ -2,8 +2,8 @@ import { getTenantBySubdomain } from '@/lib/tenant/get-tenant'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { LoginForm } from '@/components/tenant/login-form'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +16,7 @@ export default async function TenantLoginPage({
   const { tenant } = resolvedParams
   const tenantData = await getTenantBySubdomain(tenant)
 
-  if (!tenantData) return null
+  if (!tenantData) return notFound()
 
   const supabase = createAdminClient()
   const { data: adminProfile } = await supabase

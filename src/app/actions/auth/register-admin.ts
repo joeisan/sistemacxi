@@ -9,6 +9,10 @@ const registerAdminSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
   clientCodePrefix: z.string().min(2, "Mínimo 2 caracteres").max(10, "Máximo 10 caracteres").toUpperCase(),
+  confirmClientCodePrefix: z.string().min(2, "Confirma el código"),
+}).refine((data) => data.clientCodePrefix === data.confirmClientCodePrefix, {
+  message: "La confirmación del código de casillero no coincide",
+  path: ['confirmClientCodePrefix'],
 })
 
 export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
@@ -85,6 +89,14 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
       is_default: true
     })
 
+    await adminClient.from('pricing_plans').insert({
+      tenant_id: tenantId,
+      name: 'Plan Base',
+      cost_per_lb: 0,
+      delivery_fee: 0,
+      is_default: true,
+    })
+
     // 4. Crear usuario Admin en Auth
     const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
@@ -113,8 +125,9 @@ export async function registerAdmin(data: z.infer<typeof registerAdminSchema>) {
     if (profileError) throw new Error(`Error Perfil: ${profileError?.message || 'Error al guardar perfil'}`)
 
     return { success: true, subdomain: cleanSubdomain }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error inesperado'
     console.error('Error en registro:', error)
-    return { success: false, error: error.message }
+    return { success: false, error: message }
   }
 }

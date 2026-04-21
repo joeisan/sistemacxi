@@ -23,18 +23,36 @@ export default async function AdminConfiguracionPage({
   const supabase = createAdminClient()
 
   // 1. Fetch current addresses
+  const { data: settings } = await supabase
+    .from('tenant_settings')
+    .select('current_sequence, client_code_prefix, client_code_suffix, locker_address_line_1, locker_city_state_postal, locker_country, locker_phone')
+    .eq('tenant_id', tenantData.id)
+    .single()
+
+  const { data: existingDefaultAddress } = await supabase
+    .from('tenant_addresses')
+    .select('id')
+    .eq('tenant_id', tenantData.id)
+    .eq('is_default', true)
+    .maybeSingle()
+
+  if (!existingDefaultAddress && settings?.locker_address_line_1) {
+    await supabase.from('tenant_addresses').insert({
+      tenant_id: tenantData.id,
+      label: 'Sede Principal',
+      address_line_1: settings.locker_address_line_1,
+      city_state_zip: settings.locker_city_state_postal || '',
+      country: settings.locker_country || 'United States',
+      phone: settings.locker_phone || '',
+      is_default: true,
+    })
+  }
+
   const { data: addresses } = await supabase
     .from('tenant_addresses')
     .select('*')
     .eq('tenant_id', tenantData.id)
     .order('created_at', { ascending: true })
-
-  // 2. Fetch current sequence settings
-  const { data: settings } = await supabase
-    .from('tenant_settings')
-    .select('current_sequence, client_code_prefix, client_code_suffix')
-    .eq('tenant_id', tenantData.id)
-    .single()
 
   // 3. Fetch couriers
   const { data: couriers } = await supabase
